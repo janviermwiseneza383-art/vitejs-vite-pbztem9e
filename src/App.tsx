@@ -359,9 +359,3 @@ const styles: { [key: string]: React.CSSProperties } = {
   centerText: {
     textAlign: 'center',
     padding: '40px 0',
-  centerText: {
-    textAlign: 'center',
-    padding: '40px 0',
-    color: '#9ca3af',
-  },
-};
