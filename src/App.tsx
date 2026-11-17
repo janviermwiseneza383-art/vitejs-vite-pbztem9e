@@ -100,8 +100,9 @@ export default function App() {
     const end = new Date();
     end.setDate(end.getDate() + 10);
     return {
-      dateFrom: start.toISOString().split('T')[0],
+        dateFrom: start.toISOString().split('T')[0],
       dateTo: end.toISOString().split('T')[0],
+
     };
   };
 
@@ -166,9 +167,10 @@ export default function App() {
     <div style={styles.container}>
       <header style={styles.header}>
         <div style={styles.headerContent}>
-          <div style={styles.logoGroup}>
+          <div style={styles.logoGro}>
             <img
-              src="https://postimg.cc"
+                            src="https://postimg.cc"
+
               alt="Kigali Update Score"
               style={{
                 height: '52px',
