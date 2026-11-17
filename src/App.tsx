@@ -303,4 +303,5 @@ export default function App() {
                       </span>
                     </div>
 
-                    <div style={styles.scoreBox}>
+                    <div               src="/Kigali Update Score Sports Badge.png"
+
