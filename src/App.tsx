@@ -100,8 +100,8 @@ export default function App() {
     const end = new Date();
     end.setDate(end.getDate() + 10);
     return {
-      dateFrom: start.toISOString().split('T'),
-      dateTo: end.toISOString().split('T'),
+      dateFrom: start.toISOString().split('T')[0],
+      dateTo: end.toISOString().split('T')[0],
     };
   };
 
