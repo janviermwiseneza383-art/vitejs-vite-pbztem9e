@@ -1,4 +1,4 @@
-import { useState, useEffect, CSSProperties } from 'react';
+import { useState, useEffect, type CSSProperties } from 'react';
 
 interface Match {
   id: number;
