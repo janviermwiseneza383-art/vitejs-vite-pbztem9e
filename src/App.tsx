@@ -356,6 +356,10 @@ const styles: { [key: string]: CSSProperties } = {
   scoreDivider: {
     color: '#6b7280',
   },
-  centerText: {
+    centerText: {
     textAlign: 'center',
     padding: '40px 0',
+    color: '#9ca3af',
+  },
+};
+
