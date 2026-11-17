@@ -71,7 +71,12 @@ export default function App() {
         <div style={styles.headerContent}>
           <div style={styles.logoGroup}>
             <img
-              src="https://postimg.cc"
+src="https://i.postimg.cc/LXL058fx/Kigali-Update-Score-Live-Stadium-Logo.png"
+
+
+
+
+
               alt="Kigali Update Score"
               style={{
                 height: '52px',
