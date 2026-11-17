@@ -163,7 +163,8 @@ export default function App() {
         <div style={styles.headerContent}>
           <div style={styles.logoGroup}>
             <img
-              src="/logo.png"
+              src=              src="/Kigali Update Score Sports Badge.png"
+"
               alt="Kigali Update Score"
               style={{
                 height: '58px',
