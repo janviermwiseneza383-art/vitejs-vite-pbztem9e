@@ -94,22 +94,10 @@ export default function App() {
     { code: 'CL', name: 'Champions League' },
   ];
 
-  const getDateRange = () => {
-    const start = new Date();
-    start.setDate(start.getDate() - 1);
-    const end = new Date();
-    end.setDate(end.getDate() + 14);
-    return {
-      dateFrom: start.toISOString().split('T')[0],
-      dateTo: end.toISOString().split('T')[0],
-    };
-  };
-
   const fetchMatches = async () => {
     setLoading(true);
-    const { dateFrom, dateTo } = getDateRange();
     try {
-      const response = await fetch(`/api/matches?dateFrom=${dateFrom}&dateTo=${dateTo}`);
+      const response = await fetch('/api/matches');
       if (!response.ok) throw new Error('API Error');
       const data = await response.json();
       setMatches(data.matches || []);
@@ -175,10 +163,10 @@ export default function App() {
         <div style={styles.headerContent}>
           <div style={styles.logoGroup}>
             <img
-              src="https://postimg.cc"
+              src="/logo.png"
               alt="Kigali Update Score"
               style={{
-                height: '52px',
+                height: '58px',
                 width: 'auto',
                 borderRadius: '8px',
                 objectFit: 'contain',
@@ -307,3 +295,12 @@ export default function App() {
 
                   <div style={styles.teamsRow}>
                     <div style={styles.teamSide}>
+                      {match.homeTeam.crest && (
+                        <img src={match.homeTeam.crest} alt="" style={styles.crest} />
+                      )}
+                      <span style={styles.teamName}>
+                        {match.homeTeam.shortName || match.homeTeam.name}
+                      </span>
+                    </div>
+
+                    <div style={styles.scoreBox}>
