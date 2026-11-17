@@ -98,11 +98,10 @@ export default function App() {
     const start = new Date();
     start.setDate(start.getDate() - 1);
     const end = new Date();
-    end.setDate(end.getDate() + 10);
+    end.setDate(end.getDate() + 14);
     return {
-        dateFrom: start.toISOString().split('T')[0],
+      dateFrom: start.toISOString().split('T')[0],
       dateTo: end.toISOString().split('T')[0],
-
     };
   };
 
@@ -158,8 +157,15 @@ export default function App() {
 
   const formatMatchDateTime = (utcDate: string) => {
     const date = new Date(utcDate);
-    const dayStr = date.toLocaleDateString([], { month: 'short', day: 'numeric' });
-    const timeStr = date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+    const dayStr = date.toLocaleDateString([], {
+      weekday: 'short',
+      month: 'short',
+      day: 'numeric',
+    });
+    const timeStr = date.toLocaleTimeString([], {
+      hour: '2-digit',
+      minute: '2-digit',
+    });
     return `${dayStr} • ${timeStr}`;
   };
 
@@ -167,10 +173,9 @@ export default function App() {
     <div style={styles.container}>
       <header style={styles.header}>
         <div style={styles.headerContent}>
-          <div style={styles.logoGro}>
+          <div style={styles.logoGroup}>
             <img
-                            src="https://postimg.cc"
-
+              src="https://postimg.cc"
               alt="Kigali Update Score"
               style={{
                 height: '52px',
@@ -302,66 +307,3 @@ export default function App() {
 
                   <div style={styles.teamsRow}>
                     <div style={styles.teamSide}>
-                                            <span style={styles.teamName}>
-                        {match.awayTeam.shortName || match.awayTeam.name}
-                      </span>
-                      {match.awayTeam.crest && (
-                        <img src={match.awayTeam.crest} alt="" style={styles.crest} />
-                      )}
-                    </div>
-                  </div>
-                </div>
-              );
-            })}
-          </div>
-        )}
-      </main>
-
-      <footer style={styles.footer}>
-        <p style={styles.footerText}>
-          © {new Date().getFullYear()} <strong>Kigali Update Score</strong> • {t.designedBy}
-        </p>
-      </footer>
-    </div>
-  );
-}
-
-const styles: { [key: string]: CSSProperties } = {
-  container: { minHeight: '100vh', display: 'flex', flexDirection: 'column', backgroundColor: '#0b0f19', color: '#f3f4f6', fontFamily: 'system-ui, -apple-system, sans-serif' },
-  header: { backgroundColor: '#111827', borderBottom: '1px solid #1f2937', padding: '14px 20px', position: 'sticky', top: 0, zIndex: 10 },
-  headerContent: { maxWidth: '800px', margin: '0 auto', display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '12px' },
-  logoGroup: { display: 'flex', alignItems: 'center', gap: '12px' },
-  title: { margin: 0, fontSize: '20px', fontWeight: 800, letterSpacing: '0.5px', color: '#ffffff' },
-  liveSubBadge: { display: 'flex', alignItems: 'center', gap: '6px', color: '#ef4444', fontSize: '11px', fontWeight: 700, marginTop: '2px' },
-  liveDot: { width: '7px', height: '7px', borderRadius: '50%', backgroundColor: '#ef4444' },
-  langGroup: { display: 'flex', gap: '6px', backgroundColor: '#0b0f19', padding: '4px', borderRadius: '8px', border: '1px solid #1f2937' },
-  langBtn: { backgroundColor: 'transparent', color: '#9ca3af', border: 'none', padding: '5px 10px', borderRadius: '6px', cursor: 'pointer', fontSize: '12px', fontWeight: 700 },
-  langBtnActive: { backgroundColor: '#2563eb', color: '#ffffff' },
-  main: { flex: 1, width: '100%', maxWidth: '800px', margin: '0 auto', padding: '20px 16px', boxSizing: 'border-box' },
-  searchWrapper: { position: 'relative', display: 'flex', alignItems: 'center', marginBottom: '16px' },
-  searchIcon: { position: 'absolute', left: '14px', pointerEvents: 'none' },
-  searchInput: { width: '100%', backgroundColor: '#111827', border: '1px solid #374151', borderRadius: '24px', padding: '11px 40px 11px 42px', color: '#ffffff', fontSize: '14px', outline: 'none' },
-  clearBtn: { position: 'absolute', right: '14px', background: 'transparent', border: 'none', color: '#9ca3af', cursor: 'pointer', fontSize: '14px' },
-  tabsRow: { display: 'flex', gap: '8px', flexWrap: 'wrap', marginBottom: '14px' },
-  tabBtn: { backgroundColor: '#1f2937', color: '#d1d5db', border: 'none', padding: '8px 14px', borderRadius: '8px', cursor: 'pointer', fontSize: '13px', fontWeight: 600 },
-  tabBtnActive: { backgroundColor: '#ef4444', color: '#ffffff' },
-  refreshBtn: { marginLeft: 'auto', backgroundColor: '#111827', color: '#9ca3af', border: '1px solid #374151', padding: '8px 12px', borderRadius: '8px', cursor: 'pointer', fontSize: '13px' },
-  leagueBar: { display: 'flex', gap: '8px', overflowX: 'auto', paddingBottom: '12px', marginBottom: '16px' },
-  leagueBtn: { backgroundColor: '#111827', color: '#9ca3af', border: '1px solid #1f2937', padding: '6px 12px', borderRadius: '20px', cursor: 'pointer', fontSize: '12px', whiteSpace: 'nowrap' },
-  leagueBtnActive: { backgroundColor: '#2563eb', color: '#ffffff', borderColor: '#2563eb' },
-  matchList: { display: 'flex', flexDirection: 'column', gap: '12px' },
-  matchCard: { backgroundColor: '#111827', border: '1px solid #1f2937', borderRadius: '12px', padding: '14px 16px' },
-  cardHeader: { display: 'flex', justifyContent: 'space-between', marginBottom: '12px', fontSize: '12px' },
-  leagueName: { color: '#9ca3af', fontWeight: 600 },
-  statusTag: { fontWeight: 700 },
-  teamsRow: { display: 'grid', gridTemplateColumns: '1fr auto 1fr', alignItems: 'center', gap: '12px' },
-  teamSide: { display: 'flex', alignItems: 'center', gap: '10px' },
-  crest: { width: '24px', height: '24px', objectFit: 'contain' },
-  teamName: { fontSize: '15px', fontWeight: 600, color: '#f9fafb' },
-  scoreBox: { backgroundColor: '#1f2937', padding: '6px 14px', borderRadius: '8px', fontSize: '18px', fontWeight: 800, display: 'flex', gap: '6px', color: '#ffffff' },
-  scoreDivider: { color: '#6b7280' },
-  centerText: { textAlign: 'center', padding: '40px 0', color: '#9ca3af' },
-  footer: { backgroundColor: '#111827', borderTop: '1px solid #1f2937', padding: '18px 20px', textAlign: 'center', marginTop: 'auto' },
-  footerText: { margin: 0, fontSize: '13px', color: '#9ca3af' },
-};
-
