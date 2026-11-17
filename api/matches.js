@@ -1,13 +1,20 @@
 export default async function handler(req, res) {
   try {
-    const response = await fetch('https://football-data.org', {
+    const { dateFrom, dateTo } = req.query || {};
+    const apiUrl =
+      dateFrom && dateTo
+        ? `https://football-data.org{dateFrom}&dateTo=${dateTo}`
+        : 'https://football-data.org';
+
+    const response = await fetch(apiUrl, {
       headers: {
         'X-Auth-Token': 'dcc25e0d94964ac1a382090daf4dbc55',
       },
     });
+
     const data = await response.json();
-    res.status(200).json(data);
+    return res.status(response.status).json(data);
   } catch (error) {
-    res.status(500).json({ error: 'Failed to fetch matches' });
+    return res.status(500).json({ error: error.message });
   }
 }
