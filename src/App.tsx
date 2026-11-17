@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect, CSSProperties } from 'react';
 
 interface Match {
   id: number;
@@ -189,7 +189,7 @@ export default function App() {
   );
 }
 
-const styles: { [key: string]: React.CSSProperties } = {
+const styles: { [key: string]: CSSProperties } = {
   container: {
     minHeight: '100vh',
     backgroundColor: '#0b0f19',
