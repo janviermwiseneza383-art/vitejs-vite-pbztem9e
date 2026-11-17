@@ -100,8 +100,8 @@ export default function App() {
     const end = new Date();
     end.setDate(end.getDate() + 10);
     return {
-      dateFrom: start.toISOString().split('T')[0],
-      dateTo: end.toISOString().split('T')[0],
+      dateFrom: start.toISOString().split('T'),
+      dateTo: end.toISOString().split('T'),
     };
   };
 
@@ -164,7 +164,6 @@ export default function App() {
 
   return (
     <div style={styles.container}>
-      {/* Header */}
       <header style={styles.header}>
         <div style={styles.headerContent}>
           <div style={styles.logoGroup}>
@@ -186,7 +185,6 @@ export default function App() {
             </div>
           </div>
 
-          {/* Language Switcher (KINY, ENG, FRA) */}
           <div style={styles.langGroup}>
             {(['KINY', 'ENG', 'FRA'] as Lang[]).map((code) => (
               <button
@@ -204,9 +202,7 @@ export default function App() {
         </div>
       </header>
 
-      {/* Main Content */}
       <main style={styles.main}>
-        {/* Working Search Bar with Icon */}
         <div style={styles.searchWrapper}>
           <svg
             width="18"
@@ -236,7 +232,6 @@ export default function App() {
           )}
         </div>
 
-        {/* Status Tabs */}
         <div style={styles.tabsRow}>
           {[
             { id: 'UPCOMING', label: t.upcomingTab },
@@ -260,7 +255,6 @@ export default function App() {
           </button>
         </div>
 
-        {/* League Filter */}
         <div style={styles.leagueBar}>
           {LEAGUES.map((league) => (
             <button
@@ -276,7 +270,6 @@ export default function App() {
           ))}
         </div>
 
-        {/* Matches List */}
         {loading ? (
           <div style={styles.centerText}>{t.loading}</div>
         ) : filteredMatches.length === 0 ? (
@@ -301,3 +294,10 @@ export default function App() {
                         ? `LIVE ${match.minute ? `${match.minute}'` : ''}`
                         : isFinished
                         ? t.finishedTag
+                        : formatMatchDateTime(match.utcDate)}
+                    </span>
+                  </div>
+
+                  <div style={styles.teamsRow}>
+                    <div style={styles.teamSide}>
+                      {match.homeTeam.crest && (
