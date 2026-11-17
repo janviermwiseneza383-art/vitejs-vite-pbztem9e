@@ -4,8 +4,8 @@ export default async function handler(req, res) {
     const end = new Date();
     end.setDate(end.getDate() + 9);
 
-    const dateFrom = start.toISOString().split('T');
-    const dateTo = end.toISOString().split('T');
+    const dateFrom = start.toISOString().split('T')[0];
+    const dateTo = end.toISOString().split('T')[0];
 
     const apiUrl = `https://football-data.org{dateFrom}&dateTo=${dateTo}`;
 
