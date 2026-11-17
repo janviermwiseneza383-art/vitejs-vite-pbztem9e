@@ -1,5 +1,7 @@
 import { useState, useEffect, type CSSProperties } from 'react';
 
+type Lang = 'KINY' | 'ENG' | 'FRA';
+
 interface Match {
   id: number;
   competition: { name: string; code: string };
@@ -13,26 +15,101 @@ interface Match {
   };
 }
 
-const LEAGUES = [
-  { code: 'ALL', name: 'Amashampiyona Yose' },
-  { code: 'PL', name: 'Premier League' },
-  { code: 'PD', name: 'La Liga' },
-  { code: 'SA', name: 'Serie A' },
-  { code: 'BL1', name: 'Bundesliga' },
-  { code: 'FL1', name: 'Ligue 1' },
-  { code: 'CL', name: 'Champions League' },
-];
+const TRANSLATIONS: Record<Lang, {
+  allLeagues: string;
+  intlLeagues: string;
+  searchPlaceholder: string;
+  upcomingTab: string;
+  liveTab: string;
+  finishedTab: string;
+  allTab: string;
+  refresh: string;
+  loading: string;
+  noMatches: string;
+  finishedTag: string;
+  designedBy: string;
+}> = {
+  KINY: {
+    allLeagues: 'Amashampiyona Yose',
+    intlLeagues: '🌍 Ibihugu (WC & Euro)',
+    searchPlaceholder: 'Shakisha ikipe cyangwa irushanwa...',
+    upcomingTab: '📅 Imikino Izaba',
+    liveTab: '🔴 Iri Kuba (Live)',
+    finishedTab: '✅ Iyarangiye',
+    allTab: 'Yose',
+    refresh: '🔄 Kuvugurura',
+    loading: "Gushaka amakuru y'imikino...",
+    noMatches: 'Nta mikino ibonetse muri iki cyiciro.',
+    finishedTag: 'FT (Yarangiye)',
+    designedBy: 'Yakozwe na Janvier Mwiseneza',
+  },
+  ENG: {
+    allLeagues: 'All Competitions',
+    intlLeagues: '🌍 International (WC & Euro)',
+    searchPlaceholder: 'Search teams or competitions...',
+    upcomingTab: '📅 Upcoming',
+    liveTab: '🔴 Live Now',
+    finishedTab: '✅ Finished',
+    allTab: 'All',
+    refresh: '🔄 Refresh',
+    loading: 'Loading matches...',
+    noMatches: 'No matches found in this category.',
+    finishedTag: 'FT (Finished)',
+    designedBy: 'Designed & Developed by Janvier Mwiseneza',
+  },
+  FRA: {
+    allLeagues: 'Toutes les Compétitions',
+    intlLeagues: '🌍 Sélections (WC & Euro)',
+    searchPlaceholder: 'Rechercher une équipe ou compétition...',
+    upcomingTab: '📅 À Venir',
+    liveTab: '🔴 En Direct',
+    finishedTab: '✅ Terminés',
+    allTab: 'Tous',
+    refresh: '🔄 Actualiser',
+    loading: 'Chargement des matchs...',
+    noMatches: 'Aucun match trouvé dans cette catégorie.',
+    finishedTag: 'Terminé',
+    designedBy: 'Conçu et Développé par Janvier Mwiseneza',
+  },
+};
 
 export default function App() {
+  const [lang, setLang] = useState<Lang>('KINY');
   const [matches, setMatches] = useState<Match[]>([]);
   const [selectedLeague, setSelectedLeague] = useState<string>('ALL');
-  const [statusFilter, setStatusFilter] = useState<string>('ALL');
+  const [statusFilter, setStatusFilter] = useState<string>('UPCOMING');
+  const [searchQuery, setSearchQuery] = useState<string>('');
   const [loading, setLoading] = useState<boolean>(true);
+
+  const t = TRANSLATIONS[lang];
+
+  const LEAGUES = [
+    { code: 'ALL', name: t.allLeagues },
+    { code: 'INTL', name: t.intlLeagues },
+    { code: 'PL', name: 'Premier League' },
+    { code: 'PD', name: 'La Liga' },
+    { code: 'SA', name: 'Serie A' },
+    { code: 'BL1', name: 'Bundesliga' },
+    { code: 'FL1', name: 'Ligue 1' },
+    { code: 'CL', name: 'Champions League' },
+  ];
+
+  const getDateRange = () => {
+    const start = new Date();
+    start.setDate(start.getDate() - 1);
+    const end = new Date();
+    end.setDate(end.getDate() + 10);
+    return {
+      dateFrom: start.toISOString().split('T')[0],
+      dateTo: end.toISOString().split('T')[0],
+    };
+  };
 
   const fetchMatches = async () => {
     setLoading(true);
+    const { dateFrom, dateTo } = getDateRange();
     try {
-      const response = await fetch('/api/matches');
+      const response = await fetch(`/api/matches?dateFrom=${dateFrom}&dateTo=${dateTo}`);
       if (!response.ok) throw new Error('API Error');
       const data = await response.json();
       setMatches(data.matches || []);
@@ -50,33 +127,49 @@ export default function App() {
   }, []);
 
   const filteredMatches = matches.filter((match) => {
+    const code = match.competition?.code || '';
     const leagueMatch =
-      selectedLeague === 'ALL' || match.competition?.code === selectedLeague;
+      selectedLeague === 'ALL'
+        ? true
+        : selectedLeague === 'INTL'
+        ? code === 'WC' || code === 'EC' || code === 'CLI'
+        : code === selectedLeague;
+
+    const q = searchQuery.trim().toLowerCase();
+    const searchMatch =
+      !q ||
+      match.homeTeam?.name?.toLowerCase().includes(q) ||
+      match.homeTeam?.shortName?.toLowerCase().includes(q) ||
+      match.awayTeam?.name?.toLowerCase().includes(q) ||
+      match.awayTeam?.shortName?.toLowerCase().includes(q) ||
+      match.competition?.name?.toLowerCase().includes(q);
+
     const isLive = match.status === 'IN_PLAY' || match.status === 'PAUSED';
     const isFinished = match.status === 'FINISHED';
+    const isUpcoming = match.status === 'TIMED' || match.status === 'SCHEDULED';
 
-    if (statusFilter === 'LIVE') return leagueMatch && isLive;
-    if (statusFilter === 'FINISHED') return leagueMatch && isFinished;
-    return leagueMatch;
+    if (!leagueMatch || !searchMatch) return false;
+    if (statusFilter === 'UPCOMING') return isUpcoming;
+    if (statusFilter === 'LIVE') return isLive;
+    if (statusFilter === 'FINISHED') return isFinished;
+    return true;
   });
 
-  const formatTime = (utcDate: string) => {
+  const formatMatchDateTime = (utcDate: string) => {
     const date = new Date(utcDate);
-    return date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+    const dayStr = date.toLocaleDateString([], { month: 'short', day: 'numeric' });
+    const timeStr = date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+    return `${dayStr} • ${timeStr}`;
   };
 
   return (
     <div style={styles.container}>
+      {/* Header */}
       <header style={styles.header}>
         <div style={styles.headerContent}>
           <div style={styles.logoGroup}>
             <img
-src="https://i.postimg.cc/LXL058fx/Kigali-Update-Score-Live-Stadium-Logo.png"
-
-
-
-
-
+              src="https://postimg.cc"
               alt="Kigali Update Score"
               style={{
                 height: '52px',
@@ -85,20 +178,71 @@ src="https://i.postimg.cc/LXL058fx/Kigali-Update-Score-Live-Stadium-Logo.png"
                 objectFit: 'contain',
               }}
             />
-            <h1 style={styles.title}>Kigali Update Score</h1>
+            <div>
+              <h1 style={styles.title}>Kigali Update Score</h1>
+              <div style={styles.liveSubBadge}>
+                <span style={styles.liveDot}></span> LIVE SCORES & FIXTURES
+              </div>
+            </div>
           </div>
-          <div style={styles.liveBadge}>
-            <span style={styles.liveDot}></span> LIVE
+
+          {/* Language Switcher (KINY, ENG, FRA) */}
+          <div style={styles.langGroup}>
+            {(['KINY', 'ENG', 'FRA'] as Lang[]).map((code) => (
+              <button
+                key={code}
+                onClick={() => setLang(code)}
+                style={{
+                  ...styles.langBtn,
+                  ...(lang === code ? styles.langBtnActive : {}),
+                }}
+              >
+                {code}
+              </button>
+            ))}
           </div>
         </div>
       </header>
 
+      {/* Main Content */}
       <main style={styles.main}>
+        {/* Working Search Bar with Icon */}
+        <div style={styles.searchWrapper}>
+          <svg
+            width="18"
+            height="18"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="#9ca3af"
+            strokeWidth="2"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            style={styles.searchIcon}
+          >
+            <circle cx="11" cy="11" r="8" />
+            <line x1="21" y1="21" x2="16.65" y2="16.65" />
+          </svg>
+          <input
+            type="text"
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            placeholder={t.searchPlaceholder}
+            style={styles.searchInput}
+          />
+          {searchQuery && (
+            <button onClick={() => setSearchQuery('')} style={styles.clearBtn}>
+              ✕
+            </button>
+          )}
+        </div>
+
+        {/* Status Tabs */}
         <div style={styles.tabsRow}>
           {[
-            { id: 'ALL', label: 'Imikino Yose' },
-            { id: 'LIVE', label: '🔴 Iri Kuba (Live)' },
-            { id: 'FINISHED', label: 'Iyarangiye' },
+            { id: 'UPCOMING', label: t.upcomingTab },
+            { id: 'LIVE', label: t.liveTab },
+            { id: 'FINISHED', label: t.finishedTab },
+            { id: 'ALL', label: t.allTab },
           ].map((tab) => (
             <button
               key={tab.id}
@@ -112,10 +256,11 @@ src="https://i.postimg.cc/LXL058fx/Kigali-Update-Score-Live-Stadium-Logo.png"
             </button>
           ))}
           <button onClick={fetchMatches} style={styles.refreshBtn}>
-            🔄 Kuvugurura
+            {t.refresh}
           </button>
         </div>
 
+        {/* League Filter */}
         <div style={styles.leagueBar}>
           {LEAGUES.map((league) => (
             <button
@@ -131,10 +276,11 @@ src="https://i.postimg.cc/LXL058fx/Kigali-Update-Score-Live-Stadium-Logo.png"
           ))}
         </div>
 
+        {/* Matches List */}
         {loading ? (
-          <div style={styles.centerText}>Gushaka amakuru y'imikino...</div>
+          <div style={styles.centerText}>{t.loading}</div>
         ) : filteredMatches.length === 0 ? (
-          <div style={styles.centerText}>Nta mikino ibonetse muri iki cyiciro uyu munsi.</div>
+          <div style={styles.centerText}>{t.noMatches}</div>
         ) : (
           <div style={styles.matchList}>
             {filteredMatches.map((match) => {
@@ -154,217 +300,4 @@ src="https://i.postimg.cc/LXL058fx/Kigali-Update-Score-Live-Stadium-Logo.png"
                       {isLive
                         ? `LIVE ${match.minute ? `${match.minute}'` : ''}`
                         : isFinished
-                        ? 'FT (Yarangiye)'
-                        : formatTime(match.utcDate)}
-                    </span>
-                  </div>
-
-                  <div style={styles.teamsRow}>
-                    <div style={styles.teamSide}>
-                      {match.homeTeam.crest && (
-                        <img src={match.homeTeam.crest} alt="" style={styles.crest} />
-                      )}
-                      <span style={styles.teamName}>
-                        {match.homeTeam.shortName || match.homeTeam.name}
-                      </span>
-                    </div>
-
-                    <div style={styles.scoreBox}>
-                      <span>{match.score.fullTime.home ?? '-'}</span>
-                      <span style={styles.scoreDivider}>:</span>
-                      <span>{match.score.fullTime.away ?? '-'}</span>
-                    </div>
-
-                    <div style={{ ...styles.teamSide, justifyContent: 'flex-end' }}>
-                      <span style={styles.teamName}>
-                        {match.awayTeam.shortName || match.awayTeam.name}
-                      </span>
-                      {match.awayTeam.crest && (
-                        <img src={match.awayTeam.crest} alt="" style={styles.crest} />
-                      )}
-                    </div>
-                  </div>
-                </div>
-              );
-            })}
-          </div>
-        )}
-      </main>
-    </div>
-  );
-}
-
-const styles: { [key: string]: CSSProperties } = {
-  container: {
-    minHeight: '100vh',
-    backgroundColor: '#0b0f19',
-    color: '#f3f4f6',
-    fontFamily: 'system-ui, -apple-system, sans-serif',
-  },
-  header: {
-    backgroundColor: '#111827',
-    borderBottom: '1px solid #1f2937',
-    padding: '16px 20px',
-    position: 'sticky',
-    top: 0,
-    zIndex: 10,
-  },
-  headerContent: {
-    maxWidth: '800px',
-    margin: '0 auto',
-    display: 'flex',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-  },
-  logoGroup: {
-    display: 'flex',
-    alignItems: 'center',
-    gap: '10px',
-  },
-  title: {
-    margin: 0,
-    fontSize: '20px',
-    fontWeight: 800,
-    letterSpacing: '0.5px',
-    color: '#ffffff',
-  },
-  liveBadge: {
-    display: 'flex',
-    alignItems: 'center',
-    gap: '6px',
-    backgroundColor: 'rgba(239, 68, 68, 0.15)',
-    color: '#ef4444',
-    padding: '4px 10px',
-    borderRadius: '20px',
-    fontSize: '12px',
-    fontWeight: 700,
-    border: '1px solid rgba(239, 68, 68, 0.4)',
-  },
-  liveDot: {
-    width: '8px',
-    height: '8px',
-    borderRadius: '50%',
-    backgroundColor: '#ef4444',
-  },
-  main: {
-    maxWidth: '800px',
-    margin: '0 auto',
-    padding: '20px 16px',
-  },
-  tabsRow: {
-    display: 'flex',
-    gap: '8px',
-    flexWrap: 'wrap',
-    marginBottom: '14px',
-  },
-  tabBtn: {
-    backgroundColor: '#1f2937',
-    color: '#d1d5db',
-    border: 'none',
-    padding: '8px 14px',
-    borderRadius: '8px',
-    cursor: 'pointer',
-    fontSize: '13px',
-    fontWeight: 600,
-  },
-  tabBtnActive: {
-    backgroundColor: '#ef4444',
-    color: '#ffffff',
-  },
-  refreshBtn: {
-    marginLeft: 'auto',
-    backgroundColor: '#111827',
-    color: '#9ca3af',
-    border: '1px solid #374151',
-    padding: '8px 12px',
-    borderRadius: '8px',
-    cursor: 'pointer',
-    fontSize: '13px',
-  },
-  leagueBar: {
-    display: 'flex',
-    gap: '8px',
-    overflowX: 'auto',
-    paddingBottom: '12px',
-    marginBottom: '16px',
-  },
-  leagueBtn: {
-    backgroundColor: '#111827',
-    color: '#9ca3af',
-    border: '1px solid #1f2937',
-    padding: '6px 12px',
-    borderRadius: '20px',
-    cursor: 'pointer',
-    fontSize: '12px',
-    whiteSpace: 'nowrap',
-  },
-  leagueBtnActive: {
-    backgroundColor: '#2563eb',
-    color: '#ffffff',
-    borderColor: '#2563eb',
-  },
-  matchList: {
-    display: 'flex',
-    flexDirection: 'column',
-    gap: '12px',
-  },
-  matchCard: {
-    backgroundColor: '#111827',
-    border: '1px solid #1f2937',
-    borderRadius: '12px',
-    padding: '14px 16px',
-  },
-  cardHeader: {
-    display: 'flex',
-    justifyContent: 'space-between',
-    marginBottom: '12px',
-    fontSize: '12px',
-  },
-  leagueName: {
-    color: '#9ca3af',
-    fontWeight: 600,
-  },
-  statusTag: {
-    fontWeight: 700,
-  },
-  teamsRow: {
-    display: 'grid',
-    gridTemplateColumns: '1fr auto 1fr',
-    alignItems: 'center',
-    gap: '12px',
-  },
-  teamSide: {
-    display: 'flex',
-    alignItems: 'center',
-    gap: '10px',
-  },
-  crest: {
-    width: '24px',
-    height: '24px',
-    objectFit: 'contain',
-  },
-  teamName: {
-    fontSize: '15px',
-    fontWeight: 600,
-    color: '#f9fafb',
-  },
-  scoreBox: {
-    backgroundColor: '#1f2937',
-    padding: '6px 14px',
-    borderRadius: '8px',
-    fontSize: '18px',
-    fontWeight: 800,
-    display: 'flex',
-    gap: '6px',
-    color: '#ffffff',
-  },
-  scoreDivider: {
-    color: '#6b7280',
-  },
-    centerText: {
-    textAlign: 'center',
-    padding: '40px 0',
-    color: '#9ca3af',
-  },
-};
-
+                        ? t.finishedTag
