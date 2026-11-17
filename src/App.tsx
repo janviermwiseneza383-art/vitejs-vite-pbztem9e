@@ -174,4 +174,4 @@ const st: Record<string, CSSProperties> = {
   lName: { color: '#9ca3af', fontWeight: 600 },
   teams: { display: 'grid', gridTemplateColumns: '1fr auto 1fr', alignItems: 'center', gap: 12 },
   side: { display: 'flex', alignItems: 'center', gap: 10 },
-  crest: { width: 24, height: 24, objectFit: 'contain' },
+  crest: { width: 24, height: 24, objectFit: 'contain' },};
