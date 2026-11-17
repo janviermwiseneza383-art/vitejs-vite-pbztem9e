@@ -1,10 +1,13 @@
 export default async function handler(req, res) {
   try {
-    const { dateFrom, dateTo } = req.query || {};
-    const apiUrl =
-      dateFrom && dateTo
-        ? `https://football-data.org{dateFrom}&dateTo=${dateTo}`
-        : 'https://football-data.org';
+    const start = new Date();
+    const end = new Date();
+    end.setDate(end.getDate() + 9);
+
+    const dateFrom = start.toISOString().split('T');
+    const dateTo = end.toISOString().split('T');
+
+    const apiUrl = `https://football-data.org{dateFrom}&dateTo=${dateTo}`;
 
     const response = await fetch(apiUrl, {
       headers: {
@@ -13,7 +16,7 @@ export default async function handler(req, res) {
     });
 
     const data = await response.json();
-    return res.status(response.status).json(data);
+    return res.status(200).json(data);
   } catch (error) {
     return res.status(500).json({ error: error.message });
   }
