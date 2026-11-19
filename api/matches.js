@@ -1,13 +1,22 @@
 export default async function handler(req, res) {
   try {
-    const now = new Date();
-    const future = new Date(now.getTime() + 9 * 24 * 60 * 60 * 1000);
-
-    const dateFrom = now.toISOString().slice(0, 10);
-    const dateTo = future.toISOString().slice(0, 10);
-
+    const { type, id, code } = req.query || {};
     const host = ['api', 'football-data', 'org'].join('.');
-    const apiUrl = `https://${host}/v4/matches?dateFrom=${dateFrom}&dateTo=${dateTo}`;
+    let apiUrl = '';
+
+    if (type === 'standings' && code) {
+      apiUrl = `https://${host}/v4/competitions/${code}/standings`;
+    } else if (type === 'h2h' && id) {
+      apiUrl = `https://${host}/v4/matches/${id}/head2head?limit=6`;
+    } else if (type === 'detail' && id) {
+      apiUrl = `https://${host}/v4/matches/${id}`;
+    } else {
+      const now = new Date();
+      const future = new Date(now.getTime() + 9 * 24 * 60 * 60 * 1000);
+      const dateFrom = now.toISOString().slice(0, 10);
+      const dateTo = future.toISOString().slice(0, 10);
+      apiUrl = `https://${host}/v4/matches?dateFrom=${dateFrom}&dateTo=${dateTo}`;
+    }
 
     const response = await fetch(apiUrl, {
       headers: {
@@ -16,8 +25,6 @@ export default async function handler(req, res) {
     });
 
     const data = await response.json();
-
-    // Vercel Edge Cache: bituma urubuga rufunguka ako kanya (munsi y'isegonda 1)
     res.setHeader('Cache-Control', 's-maxage=45, stale-while-revalidate=60');
     return res.status(200).json(data);
   } catch (error) {
