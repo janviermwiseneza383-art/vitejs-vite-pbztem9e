@@ -16,6 +16,9 @@ export default async function handler(req, res) {
     });
 
     const data = await response.json();
+
+    // Vercel Edge Cache: bituma urubuga rufunguka ako kanya (munsi y'isegonda 1)
+    res.setHeader('Cache-Control', 's-maxage=45, stale-while-revalidate=60');
     return res.status(200).json(data);
   } catch (error) {
     return res.status(500).json({ error: error.message });
