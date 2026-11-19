@@ -4,7 +4,7 @@ type Lang = 'KINY' | 'ENG' | 'FRA';
 
 interface Match {
   id: number;
-  competition: { name: string; code: string; emblem?: string };
+  competition: { name: string; code: string };
   status: string;
   minute?: number;
   utcDate: string;
@@ -51,7 +51,6 @@ export default function App() {
   const [q, setQ] = useState('');
   const [loading, setLoading] = useState(matches.length === 0);
 
-  // Match Center Modal State
   const [selectedMatch, setSelectedMatch] = useState<Match | null>(null);
   const [mTab, setMTab] = useState<'INFO' | 'TABLE' | 'H2H'>('TABLE');
   const [detailData, setDetailData] = useState<any>(null);
@@ -96,7 +95,8 @@ export default function App() {
         fetch(`/api/matches?type=h2h&id=${m.id}`).then(r => r.json()),
       ]);
       setDetailData(detRes);
-      setTableData(tblRes?.standings?.[0]?.table || []);
+      const firstStanding = Array.isArray(tblRes?.standings) ? tblRes.standings.at(0) : null;
+      setTableData(firstStanding?.table || []);
       setH2hData(h2hRes?.matches || []);
     } catch {}
     setMLoading(false);
@@ -118,6 +118,8 @@ export default function App() {
     const d = new Date(u);
     return `${d.toLocaleDateString([], { weekday: 'short', month: 'short', day: 'numeric' })} • ${d.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}`;
   };
+
+  const firstRef = Array.isArray(detailData?.referees) ? detailData.referees.at(0) : null;
 
   return (
     <div style={st.wrap}>
@@ -193,7 +195,6 @@ export default function App() {
         )}
       </main>
 
-      {/* LiveScore-Style Match Center Modal */}
       {selectedMatch && (
         <div style={st.modalBg} onClick={() => setSelectedMatch(null)}>
           <div style={st.modalBox} onClick={(e) => e.stopPropagation()}>
@@ -208,4 +209,3 @@ export default function App() {
                 <div style={{ fontWeight: 700, fontSize: 14, marginTop: 6 }}>{selectedMatch.homeTeam.shortName || selectedMatch.homeTeam.name}</div>
               </div>
               <div style={{ textAlign: 'center' }}>
-                <div style={{ fontSize: 22, fontWeight: 800 }}>
