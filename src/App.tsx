@@ -4,28 +4,61 @@ type Lang = 'KINY' | 'ENG' | 'FRA';
 
 interface Match {
   id: number;
-  competition: { name: string; code: string };
+  competition: { name: string; code: string; emblem?: string };
   status: string;
   minute?: number;
   utcDate: string;
-  homeTeam: { name: string; shortName?: string; crest?: string };
-  awayTeam: { name: string; shortName?: string; crest?: string };
+  venue?: string;
+  homeTeam: { id: number; name: string; shortName?: string; crest?: string };
+  awayTeam: { id: number; name: string; shortName?: string; crest?: string };
   score: { fullTime: { home: number | null; away: number | null } };
 }
 
 const TEXT: Record<Lang, any> = {
-  KINY: { all: 'Amashampiyona Yose', intl: '🌍 Ibihugu (WC & Euro)', search: 'Shakisha ikipe cyangwa irushanwa...', up: '📅 Imikino Izaba', live: '🔴 Iri Kuba', fin: '✅ Iyarangiye', yose: 'Yose', ref: '🔄 Kuvugurura', load: "Gushaka amakuru y'imikino...", none: 'Nta mikino ibonetse.', ft: 'FT (Yarangiye)', dev: 'Yakozwe na Janvier Mwiseneza' },
-  ENG: { all: 'All Competitions', intl: '🌍 International (WC & Euro)', search: 'Search teams or competitions...', up: '📅 Upcoming', live: '🔴 Live Now', fin: '✅ Finished', yose: 'All', ref: '🔄 Refresh', load: 'Loading matches...', none: 'No matches found.', ft: 'FT (Finished)', dev: 'Designed & Developed by Janvier Mwiseneza' },
-  FRA: { all: 'Toutes les Compétitions', intl: '🌍 Sélections (WC & Euro)', search: 'Rechercher une équipe...', up: '📅 À Venir', live: '🔴 En Direct', fin: '✅ Terminés', yose: 'Tous', ref: '🔄 Actualiser', load: 'Chargement...', none: 'Aucun match trouvé.', ft: 'Terminé', dev: 'Conçu et Développé par Janvier Mwiseneza' },
+  KINY: {
+    all: 'Amashampiyona Yose', intl: '🌍 Ibihugu (WC & Euro)', search: 'Shakisha ikipe cyangwa irushanwa...',
+    up: '📅 Imikino Izaba', live: '🔴 Iri Kuba', fin: '✅ Iyarangiye', yose: 'Yose', ref: '🔄 Kuvugurura',
+    load: "Gushaka amakuru y'imikino...", none: 'Nta mikino ibonetse.', ft: 'FT (Yarangiye)',
+    dev: 'Yakozwe na Janvier Mwiseneza', info: 'Amakuru & Lineup', table: 'Urutonde (Table)', h2h: 'H2H (Byabanje)',
+    venue: 'Ikibuga', refLbl: 'Umusifuzi', noTable: 'Urutonde rwa shampiyona ntirubonetse.', noH2h: 'Nta mikino yabanje ibonetse.',
+    lineupWait: 'Abakinnyi babanza mu kibuga (Lineup) bashyirwaho hasigaye isaha 1 ngo umukino utangire.'
+  },
+  ENG: {
+    all: 'All Competitions', intl: '🌍 International (WC & Euro)', search: 'Search teams or competitions...',
+    up: '📅 Upcoming', live: '🔴 Live Now', fin: '✅ Finished', yose: 'All', ref: '🔄 Refresh',
+    load: 'Loading matches...', none: 'No matches found.', ft: 'FT (Finished)',
+    dev: 'Designed & Developed by Janvier Mwiseneza', info: 'Info & Lineup', table: 'Table', h2h: 'H2H',
+    venue: 'Stadium', refLbl: 'Referee', noTable: 'Standings not available for this competition.', noH2h: 'No previous H2H matches found.',
+    lineupWait: 'Official starting lineups are released ~1 hour before kickoff.'
+  },
+  FRA: {
+    all: 'Toutes les Compétitions', intl: '🌍 Sélections (WC & Euro)', search: 'Rechercher une équipe...',
+    up: '📅 À Venir', live: '🔴 En Direct', fin: '✅ Terminés', yose: 'Tous', ref: '🔄 Actualiser',
+    load: 'Chargement...', none: 'Aucun match trouvé.', ft: 'Terminé',
+    dev: 'Conçu et Développé par Janvier Mwiseneza', info: 'Infos & Compo', table: 'Classement', h2h: 'H2H',
+    venue: 'Stade', refLbl: 'Arbitre', noTable: 'Classement non disponible.', noH2h: 'Aucun historique H2H trouvé.',
+    lineupWait: 'Les compositions officielles sont publiées ~1h avant le coup d’envoi.'
+  },
 };
 
 export default function App() {
   const [lang, setLang] = useState<Lang>('KINY');
-  const [matches, setMatches] = useState<Match[]>([]);
+  const [matches, setMatches] = useState<Match[]>(() => {
+    try { return JSON.parse(localStorage.getItem('kus_matches') || '[]'); } catch { return []; }
+  });
   const [league, setLeague] = useState('ALL');
   const [tab, setTab] = useState('UPCOMING');
   const [q, setQ] = useState('');
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(matches.length === 0);
+
+  // Match Center Modal State
+  const [selectedMatch, setSelectedMatch] = useState<Match | null>(null);
+  const [mTab, setMTab] = useState<'INFO' | 'TABLE' | 'H2H'>('TABLE');
+  const [detailData, setDetailData] = useState<any>(null);
+  const [tableData, setTableData] = useState<any[]>([]);
+  const [h2hData, setH2hData] = useState<any[]>([]);
+  const [mLoading, setMLoading] = useState(false);
+
   const t = TEXT[lang];
 
   const leagues = [
@@ -35,16 +68,39 @@ export default function App() {
   ];
 
   const load = async () => {
-    setLoading(true);
+    if (matches.length === 0) setLoading(true);
     try {
       const r = await fetch('/api/matches');
       const d = await r.json();
-      setMatches(d.matches || []);
-    } catch { setMatches([]); }
+      if (d.matches) {
+        setMatches(d.matches);
+        localStorage.setItem('kus_matches', JSON.stringify(d.matches));
+      }
+    } catch {}
     setLoading(false);
   };
 
   useEffect(() => { load(); const i = setInterval(load, 60000); return () => clearInterval(i); }, []);
+
+  const openMatchCenter = async (m: Match) => {
+    setSelectedMatch(m);
+    setMTab('TABLE');
+    setMLoading(true);
+    setDetailData(null);
+    setTableData([]);
+    setH2hData([]);
+    try {
+      const [detRes, tblRes, h2hRes] = await Promise.all([
+        fetch(`/api/matches?type=detail&id=${m.id}`).then(r => r.json()),
+        fetch(`/api/matches?type=standings&code=${m.competition?.code}`).then(r => r.json()),
+        fetch(`/api/matches?type=h2h&id=${m.id}`).then(r => r.json()),
+      ]);
+      setDetailData(detRes);
+      setTableData(tblRes?.standings?.[0]?.table || []);
+      setH2hData(h2hRes?.matches || []);
+    } catch {}
+    setMLoading(false);
+  };
 
   const list = matches.filter((m) => {
     const c = m.competition?.code || '';
@@ -108,7 +164,7 @@ export default function App() {
               const live = ['IN_PLAY', 'PAUSED'].includes(m.status);
               const fin = m.status === 'FINISHED';
               return (
-                <div key={m.id} style={st.card}>
+                <div key={m.id} onClick={() => openMatchCenter(m)} style={st.card}>
                   <div style={st.cHead}>
                     <span style={st.lName}>{m.competition?.name}</span>
                     <span style={{ fontWeight: 700, color: live ? '#ff4d4f' : fin ? '#9ca3af' : '#38bdf8' }}>
@@ -137,41 +193,19 @@ export default function App() {
         )}
       </main>
 
-      <footer style={st.foot}>
-        <p style={st.fTxt}>© {new Date().getFullYear()} <strong>Kigali Update Score</strong> • {t.dev}</p>
-      </footer>
-    </div>
-  );
-}
+      {/* LiveScore-Style Match Center Modal */}
+      {selectedMatch && (
+        <div style={st.modalBg} onClick={() => setSelectedMatch(null)}>
+          <div style={st.modalBox} onClick={(e) => e.stopPropagation()}>
+            <div style={st.mTop}>
+              <span style={{ fontSize: 13, color: '#9ca3af', fontWeight: 700 }}>{selectedMatch.competition?.name}</span>
+              <button onClick={() => setSelectedMatch(null)} style={st.closeBtn}>✕</button>
+            </div>
 
-const st: Record<string, CSSProperties> = {
-  wrap: { minHeight: '100vh', display: 'flex', flexDirection: 'column', background: '#0b0f19', color: '#f3f4f6', fontFamily: 'system-ui, sans-serif' },
-  head: { background: '#111827', borderBottom: '1px solid #1f2937', padding: '14px 20px', position: 'sticky', top: 0, zIndex: 10 },
-  hIn: { maxWidth: 800, margin: '0 auto', display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: 12 },
-  logoRow: { display: 'flex', alignItems: 'center', gap: 12 },
-  logo: { height: 58, width: 'auto', borderRadius: 8, objectFit: 'contain' },
-  title: { margin: 0, fontSize: 20, fontWeight: 800, color: '#fff' },
-  sub: { display: 'flex', alignItems: 'center', gap: 6, color: '#ef4444', fontSize: 11, fontWeight: 700, marginTop: 2 },
-  dot: { width: 7, height: 7, borderRadius: '50%', background: '#ef4444' },
-  langs: { display: 'flex', gap: 6, background: '#0b0f19', padding: 4, borderRadius: 8, border: '1px solid #1f2937' },
-  lBtn: { background: 'transparent', color: '#9ca3af', border: 'none', padding: '5px 10px', borderRadius: 6, cursor: 'pointer', fontSize: 12, fontWeight: 700 },
-  lAct: { background: '#2563eb', color: '#fff' },
-  main: { flex: 1, width: '100%', maxWidth: 800, margin: '0 auto', padding: '20px 16px', boxSizing: 'border-box' },
-  sBox: { position: 'relative', display: 'flex', alignItems: 'center', marginBottom: 16 },
-  sIco: { position: 'absolute', left: 14, fontSize: 15 },
-  sInp: { width: '100%', background: '#111827', border: '1px solid #374151', borderRadius: 24, padding: '11px 40px', color: '#fff', fontSize: 14, outline: 'none' },
-  clr: { position: 'absolute', right: 14, background: 'transparent', border: 'none', color: '#9ca3af', cursor: 'pointer' },
-  tabs: { display: 'flex', gap: 8, flexWrap: 'wrap', marginBottom: 14 },
-  tBtn: { background: '#1f2937', color: '#d1d5db', border: 'none', padding: '8px 14px', borderRadius: 8, cursor: 'pointer', fontSize: 13, fontWeight: 600 },
-  tAct: { background: '#ef4444', color: '#fff' },
-  ref: { marginLeft: 'auto', background: '#111827', color: '#9ca3af', border: '1px solid #374151', padding: '8px 12px', borderRadius: 8, cursor: 'pointer', fontSize: 13 },
-  lBar: { display: 'flex', gap: 8, overflowX: 'auto', paddingBottom: 12, marginBottom: 16 },
-  cBtn: { background: '#111827', color: '#9ca3af', border: '1px solid #1f2937', padding: '6px 12px', borderRadius: 20, cursor: 'pointer', fontSize: 12, whiteSpace: 'nowrap' },
-  cAct: { background: '#2563eb', color: '#fff', borderColor: '#2563eb' },
-  list: { display: 'flex', flexDirection: 'column', gap: 12 },
-  card: { background: '#111827', border: '1px solid #1f2937', borderRadius: 12, padding: '14px 16px' },
-  cHead: { display: 'flex', justifyContent: 'space-between', marginBottom: 12, fontSize: 12 },
-  lName: { color: '#9ca3af', fontWeight: 600 },
-  teams: { display: 'grid', gridTemplateColumns: '1fr auto 1fr', alignItems: 'center', gap: 12 },
-  side: { display: 'flex', alignItems: 'center', gap: 10 },
-  crest: { width: 24, height: 24, objectFit: 'contain' },};
+            <div style={st.mHero}>
+              <div style={st.mTeam}>
+                {selectedMatch.homeTeam.crest && <img src={selectedMatch.homeTeam.crest} alt="" style={st.mCrest} />}
+                <div style={{ fontWeight: 700, fontSize: 14, marginTop: 6 }}>{selectedMatch.homeTeam.shortName || selectedMatch.homeTeam.name}</div>
+              </div>
+              <div style={{ textAlign: 'center' }}>
+                <div style={{ fontSize: 22, fontWeight: 800 }}>
