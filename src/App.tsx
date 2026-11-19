@@ -4,55 +4,83 @@ type Lang = 'KINY' | 'ENG' | 'FRA';
 
 interface Match {
   id: number;
-  competition: { name: string; code: string };
+  competition: { name: string; code: string; emblem?: string };
   status: string;
   minute?: number;
+  matchday?: number;
   utcDate: string;
   venue?: string;
   homeTeam: { id: number; name: string; shortName?: string; crest?: string };
   awayTeam: { id: number; name: string; shortName?: string; crest?: string };
-  score: { fullTime: { home: number | null; away: number | null } };
+  score: {
+    fullTime: { home: number | null; away: number | null };
+    halfTime?: { home: number | null; away: number | null };
+  };
 }
 
 const TEXT: Record<Lang, any> = {
   KINY: {
-    all: 'Amashampiyona Yose', intl: '🌍 Ibihugu (WC & Euro)', search: 'Shakisha ikipe cyangwa irushanwa...',
-    up: '📅 Imikino Izaba', live: '🔴 Iri Kuba', fin: '✅ Iyarangiye', yose: 'Yose', ref: '🔄 Kuvugurura',
-    load: "Gushaka amakuru y'imikino...", none: 'Nta mikino ibonetse.', ft: 'FT (Yarangiye)',
-    dev: 'Yakozwe na Janvier Mwiseneza', info: 'Amakuru & Lineup', table: 'Urutonde (Table)', h2h: 'H2H (Byabanje)',
-    venue: 'Ikibuga', refLbl: 'Umusifuzi', noTable: 'Urutonde rwa shampiyona ntirubonetse.', noH2h: 'Nta mikino yabanje ibonetse.',
-    lineupWait: 'Abakinnyi babanza mu kibuga (Lineup) bashyirwaho hasigaye isaha 1 ngo umukino utangire.'
+    all: 'Imikino Yose', search: 'Shakisha ikipe, umukinnyi cyangwa irushanwa...',
+    up: '📅 Izaba', live: '🔴 Live', fin: '✅ Iyarangiye', yose: 'Yose',
+    matchesTab: '⚽ Imikino', standingsTab: '🏆 Urutonde', scorersTab: '👟 Abatsinze', teamsTab: '🛡️ Amakipe',
+    load: "Gushaka amakuru y'imikino...", none: 'Nta makuru abonetse muri iki cyiciro.',
+    ft: 'FT', ht: 'HT', dev: 'Yakozwe na Janvier Mwiseneza',
+    summary: 'Ibyabaye & Stats', lineups: 'Lineups & Bench', table: 'Urutonde', h2h: 'H2H',
+    venue: 'Ikibuga', refLbl: 'Umusifuzi', coach: 'Umutoza', goals: 'Ibitego (Goals)',
+    cards: 'Amakarita', subs: 'Abasimbuye (Subs)', stats: 'Imibare y’Umukino',
+    starting: 'Ababanza mu kibuga (Starting XI)', bench: 'Abasimbura (Bench)',
+    noTable: 'Urutonde ntirubonetse.', noH2h: 'Nta mikino yabanje ibonetse.',
+    lineupWait: 'Abakinnyi babanza mu kibuga bashyirwaho hasigaye isaha 1 ngo umukino utangire.'
   },
   ENG: {
-    all: 'All Competitions', intl: '🌍 International (WC & Euro)', search: 'Search teams or competitions...',
-    up: '📅 Upcoming', live: '🔴 Live Now', fin: '✅ Finished', yose: 'All', ref: '🔄 Refresh',
-    load: 'Loading matches...', none: 'No matches found.', ft: 'FT (Finished)',
-    dev: 'Designed & Developed by Janvier Mwiseneza', info: 'Info & Lineup', table: 'Table', h2h: 'H2H',
-    venue: 'Stadium', refLbl: 'Referee', noTable: 'Standings not available for this competition.', noH2h: 'No previous H2H matches found.',
-    lineupWait: 'Official starting lineups are released ~1 hour before kickoff.'
+    all: 'All Matches', search: 'Search team, player or competition...',
+    up: '📅 Upcoming', live: '🔴 Live', fin: '✅ Finished', yose: 'All',
+    matchesTab: '⚽ Matches', standingsTab: '🏆 Standings', scorersTab: '👟 Top Scorers', teamsTab: '🛡️ Teams',
+    load: 'Loading live data...', none: 'No data found in this category.',
+    ft: 'FT', ht: 'HT', dev: 'Designed & Developed by Janvier Mwiseneza',
+    summary: 'Events & Stats', lineups: 'Lineups & Bench', table: 'Table', h2h: 'H2H',
+    venue: 'Stadium', refLbl: 'Referee', coach: 'Coach', goals: 'Goals',
+    cards: 'Bookings', subs: 'Substitutions', stats: 'Match Statistics',
+    starting: 'Starting XI', bench: 'Substitutes',
+    noTable: 'Standings not available.', noH2h: 'No H2H history found.',
+    lineupWait: 'Starting lineups are published ~1 hour before kickoff.'
   },
   FRA: {
-    all: 'Toutes les Compétitions', intl: '🌍 Sélections (WC & Euro)', search: 'Rechercher une équipe...',
-    up: '📅 À Venir', live: '🔴 En Direct', fin: '✅ Terminés', yose: 'Tous', ref: '🔄 Actualiser',
-    load: 'Chargement...', none: 'Aucun match trouvé.', ft: 'Terminé',
-    dev: 'Conçu et Développé par Janvier Mwiseneza', info: 'Infos & Compo', table: 'Classement', h2h: 'H2H',
-    venue: 'Stade', refLbl: 'Arbitre', noTable: 'Classement non disponible.', noH2h: 'Aucun historique H2H trouvé.',
-    lineupWait: 'Les compositions officielles sont publiées ~1h avant le coup d’envoi.'
+    all: 'Tous les Matchs', search: 'Rechercher équipe ou compétition...',
+    up: '📅 À Venir', live: '🔴 En Direct', fin: '✅ Terminés', yose: 'Tous',
+    matchesTab: '⚽ Matchs', standingsTab: '🏆 Classement', scorersTab: '👟 Buteurs', teamsTab: '🛡️ Équipes',
+    load: 'Chargement des données...', none: 'Aucune donnée trouvée.',
+    ft: 'Terminé', ht: 'MT', dev: 'Conçu et Développé par Janvier Mwiseneza',
+    summary: 'Faits & Stats', lineups: 'Compos & Banc', table: 'Classement', h2h: 'H2H',
+    venue: 'Stade', refLbl: 'Arbitre', coach: 'Entraîneur', goals: 'Buts',
+    cards: 'Cartons', subs: 'Remplacements', stats: 'Statistiques',
+    starting: 'Onze de Départ', bench: 'Remplaçants',
+    noTable: 'Classement non disponible.', noH2h: 'Aucun historique H2H.',
+    lineupWait: 'Les compositions sont publiées ~1h avant le match.'
   },
 };
 
 export default function App() {
   const [lang, setLang] = useState<Lang>('KINY');
+  const [competitions, setCompetitions] = useState<any[]>(() => {
+    try { return JSON.parse(localStorage.getItem('kus_comps_v3') || '[]'); } catch { return []; }
+  });
   const [matches, setMatches] = useState<Match[]>(() => {
-    try { return JSON.parse(localStorage.getItem('kus_matches') || '[]'); } catch { return []; }
+    try { return JSON.parse(localStorage.getItem('kus_matches_v3') || '[]'); } catch { return []; }
   });
   const [league, setLeague] = useState('ALL');
-  const [tab, setTab] = useState('UPCOMING');
+  const [mainView, setMainView] = useState<'MATCHES' | 'STANDINGS' | 'SCORERS' | 'TEAMS'>('MATCHES');
+  const [tab, setTab] = useState('ALL');
   const [q, setQ] = useState('');
   const [loading, setLoading] = useState(matches.length === 0);
 
+  const [leagueTable, setLeagueTable] = useState<any[]>([]);
+  const [scorers, setScorers] = useState<any[]>([]);
+  const [teams, setTeams] = useState<any[]>([]);
+  const [extraLoading, setExtraLoading] = useState(false);
+
   const [selectedMatch, setSelectedMatch] = useState<Match | null>(null);
-  const [mTab, setMTab] = useState<'INFO' | 'TABLE' | 'H2H'>('TABLE');
+  const [mTab, setMTab] = useState<'SUMMARY' | 'LINEUPS' | 'TABLE' | 'H2H'>('SUMMARY');
   const [detailData, setDetailData] = useState<any>(null);
   const [tableData, setTableData] = useState<any[]>([]);
   const [h2hData, setH2hData] = useState<any[]>([]);
@@ -60,30 +88,70 @@ export default function App() {
 
   const t = TEXT[lang];
 
-  const leagues = [
-    { c: 'ALL', n: t.all }, { c: 'INTL', n: t.intl }, { c: 'PL', n: 'Premier League' },
-    { c: 'PD', n: 'La Liga' }, { c: 'SA', n: 'Serie A' }, { c: 'BL1', n: 'Bundesliga' },
-    { c: 'FL1', n: 'Ligue 1' }, { c: 'CL', n: 'Champions League' },
-  ];
+  useEffect(() => {
+    fetch('/api/matches?type=competitions')
+      .then(r => r.json())
+      .then(d => {
+        if (Array.isArray(d.competitions)) {
+          setCompetitions(d.competitions);
+          localStorage.setItem('kus_comps_v3', JSON.stringify(d.competitions));
+        }
+      })
+      .catch(() => {});
+  }, []);
 
-  const load = async () => {
+  const loadMatches = async (targetLeague = league) => {
     if (matches.length === 0) setLoading(true);
     try {
-      const r = await fetch('/api/matches');
+      const url = targetLeague === 'ALL'
+        ? '/api/matches'
+        : `/api/matches?type=comp_matches&code=${targetLeague}`;
+      const r = await fetch(url);
       const d = await r.json();
-      if (d.matches) {
+      if (Array.isArray(d.matches)) {
         setMatches(d.matches);
-        localStorage.setItem('kus_matches', JSON.stringify(d.matches));
+        if (targetLeague === 'ALL') {
+          localStorage.setItem('kus_matches_v3', JSON.stringify(d.matches));
+        }
       }
     } catch {}
     setLoading(false);
   };
 
-  useEffect(() => { load(); const i = setInterval(load, 60000); return () => clearInterval(i); }, []);
+  useEffect(() => {
+    loadMatches(league);
+    const i = setInterval(() => loadMatches(league), 30000);
+    return () => clearInterval(i);
+  }, [league]);
+
+  useEffect(() => {
+    if (mainView === 'MATCHES') return;
+    const targetCode = league === 'ALL' ? (competitions.at(0)?.code || 'PL') : league;
+    if (league === 'ALL') setLeague(targetCode);
+
+    const fetchExtra = async () => {
+      setExtraLoading(true);
+      try {
+        if (mainView === 'STANDINGS') {
+          const res = await fetch(`/api/matches?type=standings&code=${targetCode}`).then(r => r.json());
+          const first = Array.isArray(res?.standings) ? res.standings.at(0) : null;
+          setLeagueTable(first?.table || []);
+        } else if (mainView === 'SCORERS') {
+          const res = await fetch(`/api/matches?type=scorers&code=${targetCode}`).then(r => r.json());
+          setScorers(res?.scorers || []);
+        } else if (mainView === 'TEAMS') {
+          const res = await fetch(`/api/matches?type=teams&code=${targetCode}`).then(r => r.json());
+          setTeams(res?.teams || []);
+        }
+      } catch {}
+      setExtraLoading(false);
+    };
+    fetchExtra();
+  }, [mainView, league]);
 
   const openMatchCenter = async (m: Match) => {
     setSelectedMatch(m);
-    setMTab('TABLE');
+    setMTab('SUMMARY');
     setMLoading(true);
     setDetailData(null);
     setTableData([]);
@@ -103,11 +171,9 @@ export default function App() {
   };
 
   const list = matches.filter((m) => {
-    const c = m.competition?.code || '';
-    const okL = league === 'ALL' ? true : league === 'INTL' ? ['WC', 'EC', 'CLI'].includes(c) : c === league;
     const s = q.trim().toLowerCase();
     const okQ = !s || [m.homeTeam?.name, m.homeTeam?.shortName, m.awayTeam?.name, m.awayTeam?.shortName, m.competition?.name].some((v) => v?.toLowerCase().includes(s));
-    if (!okL || !okQ) return false;
+    if (!okQ) return false;
     if (tab === 'UPCOMING') return ['TIMED', 'SCHEDULED'].includes(m.status);
     if (tab === 'LIVE') return ['IN_PLAY', 'PAUSED'].includes(m.status);
     if (tab === 'FINISHED') return m.status === 'FINISHED';
@@ -120,16 +186,21 @@ export default function App() {
   };
 
   const firstRef = Array.isArray(detailData?.referees) ? detailData.referees.at(0) : null;
+  const goals = Array.isArray(detailData?.goals) ? detailData.goals : [];
+  const bookings = Array.isArray(detailData?.bookings) ? detailData.bookings : [];
+  const subs = Array.isArray(detailData?.substitutions) ? detailData.substitutions : [];
+  const homeStats = detailData?.homeTeam?.statistics;
+  const awayStats = detailData?.awayTeam?.statistics;
 
   return (
     <div style={st.wrap}>
       <header style={st.head}>
         <div style={st.hIn}>
-          <div style={st.logoRow}>
-            <img src="/Kigali Update Score Sports Badge.png" alt="Logo" style={st.logo} />
+          <div style={st.logoRow} onClick={() => { setMainView('MATCHES'); setLeague('ALL'); }}>
+            <img src="/Kigali Update Score Sports Badge.png" alt="Kigali Update Score" style={st.logo} />
             <div>
               <h1 style={st.title}>Kigali Update Score</h1>
-              <div style={st.sub}><span style={st.dot} /> LIVE SCORES & FIXTURES</div>
+              <div style={st.sub}><span style={st.dot} /> LIVE SCORES • STATS • STANDINGS</div>
             </div>
           </div>
           <div style={st.langs}>
@@ -141,71 +212,12 @@ export default function App() {
       </header>
 
       <main style={st.main}>
+        {/* Search Bar */}
         <div style={st.sBox}>
           <span style={st.sIco}>🔍</span>
           <input value={q} onChange={(e) => setQ(e.target.value)} placeholder={t.search} style={st.sInp} />
           {q && <button onClick={() => setQ('')} style={st.clr}>✕</button>}
         </div>
 
-        <div style={st.tabs}>
-          {[{ id: 'UPCOMING', l: t.up }, { id: 'LIVE', l: t.live }, { id: 'FINISHED', l: t.fin }, { id: 'ALL', l: t.yose }].map((b) => (
-            <button key={b.id} onClick={() => setTab(b.id)} style={{ ...st.tBtn, ...(tab === b.id ? st.tAct : {}) }}>{b.l}</button>
-          ))}
-          <button onClick={load} style={st.ref}>{t.ref}</button>
-        </div>
-
-        <div style={st.lBar}>
-          {leagues.map((l) => (
-            <button key={l.c} onClick={() => setLeague(l.c)} style={{ ...st.cBtn, ...(league === l.c ? st.cAct : {}) }}>{l.n}</button>
-          ))}
-        </div>
-
-        {loading ? <div style={st.msg}>{t.load}</div> : list.length === 0 ? <div style={st.msg}>{t.none}</div> : (
-          <div style={st.list}>
-            {list.map((m) => {
-              const live = ['IN_PLAY', 'PAUSED'].includes(m.status);
-              const fin = m.status === 'FINISHED';
-              return (
-                <div key={m.id} onClick={() => openMatchCenter(m)} style={st.card}>
-                  <div style={st.cHead}>
-                    <span style={st.lName}>{m.competition?.name}</span>
-                    <span style={{ fontWeight: 700, color: live ? '#ff4d4f' : fin ? '#9ca3af' : '#38bdf8' }}>
-                      {live ? `LIVE ${m.minute ? `${m.minute}'` : ''}` : fin ? t.ft : fmt(m.utcDate)}
-                    </span>
-                  </div>
-                  <div style={st.teams}>
-                    <div style={st.side}>
-                      {m.homeTeam.crest && <img src={m.homeTeam.crest} alt="" style={st.crest} />}
-                      <span style={st.tName}>{m.homeTeam.shortName || m.homeTeam.name}</span>
-                    </div>
-                    <div style={st.score}>
-                      <span>{m.score.fullTime.home ?? '-'}</span>
-                      <span style={{ color: '#6b7280' }}>:</span>
-                      <span>{m.score.fullTime.away ?? '-'}</span>
-                    </div>
-                    <div style={{ ...st.side, justifyContent: 'flex-end' }}>
-                      <span style={st.tName}>{m.awayTeam.shortName || m.awayTeam.name}</span>
-                      {m.awayTeam.crest && <img src={m.awayTeam.crest} alt="" style={st.crest} />}
-                    </div>
-                  </div>
-                </div>
-              );
-            })}
-          </div>
-        )}
-      </main>
-
-      {selectedMatch && (
-        <div style={st.modalBg} onClick={() => setSelectedMatch(null)}>
-          <div style={st.modalBox} onClick={(e) => e.stopPropagation()}>
-            <div style={st.mTop}>
-              <span style={{ fontSize: 13, color: '#9ca3af', fontWeight: 700 }}>{selectedMatch.competition?.name}</span>
-              <button onClick={() => setSelectedMatch(null)} style={st.closeBtn}>✕</button>
-            </div>
-
-            <div style={st.mHero}>
-              <div style={st.mTeam}>
-                {selectedMatch.homeTeam.crest && <img src={selectedMatch.homeTeam.crest} alt="" style={st.mCrest} />}
-                <div style={{ fontWeight: 700, fontSize: 14, marginTop: 6 }}>{selectedMatch.homeTeam.shortName || selectedMatch.homeTeam.name}</div>
-              </div>
-              <div style={{ textAlign: 'center' }}>
+        {/* Navigation Tabs (No Refresh Button - Auto-Syncs Silently) */}
+        <div style={st.modeRow}>
