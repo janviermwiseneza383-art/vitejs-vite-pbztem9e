@@ -142,4 +142,4 @@ const st: Record<string, CSSProperties> = {
   wrap: { minHeight: '100vh', width: '100%', display: 'flex', flexDirection: 'column', background: 'radial-gradient(ellipse at top, #132238 0%, #090e1a 55%, #04070d 100%)', color: '#f8fafc', fontFamily: 'system-ui, sans-serif', overflowX: 'hidden' },
   head: { background: 'rgba(9,14,26,0.88)', backdropFilter: 'blur(12px)', borderBottom: '1px solid rgba(255,255,255,0.08)', padding: '14px 20px', position: 'sticky', top: 0, zIndex: 10 },
   hIn: { width: '100%', maxWidth: 960, margin: '0 auto', display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: 12 },
-  logoRow: { display: 'flex', alignItems: 'center', gap: 12, cursor: 'pointer' },
+  logoRow: { display: 'flex', alignItems: 'center', gap: 12, cursor: 'pointer' },};
