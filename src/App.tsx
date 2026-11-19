@@ -8,12 +8,15 @@ const TXT: Record<Lang, any> = {
   FRA: { all: 'Tous', lv: 'DIRECT', up: 'À Venir', fn: 'Terminés', fav: 'Favoris', s: 'Rechercher équipe, ligue...', tbl: 'Classement', scr: 'Buteurs', inf: 'Infos', sum: 'Résumé', sts: 'Stats', lnp: 'Compos', h2h: 'H2H', dev: 'Conçu par Janvier Mwiseneza' },
 };
 
+const fallbackCrest = (name = 'FC') =>
+  `data:image/svg+xml;utf8,${encodeURIComponent(`<svg xmlns="http://w3.org" viewBox="0 0 48 48"><circle cx="24" cy="24" r="22" fill="#1e293b" stroke="#475569" stroke-width="2"/><text x="24" y="29" font-family="Arial" font-size="13" font-weight="bold" fill="#fff" text-anchor="middle">${name.slice(0, 3).toUpperCase()}</text></svg>`)}`;
+
 export default function App() {
   const [lang, setLang] = useState<Lang>('KINY');
   const [sport, setSport] = useState('Football');
-  const [comps, setComps] = useState<any[]>(() => { try { return JSON.parse(localStorage.getItem('ls_c') || '[]'); } catch { return []; } });
-  const [matches, setMatches] = useState<any[]>(() => { try { return JSON.parse(localStorage.getItem('ls_m') || '[]'); } catch { return []; } });
-  const [favs, setFavs] = useState<number[]>(() => { try { return JSON.parse(localStorage.getItem('ls_f') || '[]'); } catch { return []; } });
+  const [comps, setComps] = useState<any[]>(() => { try { return JSON.parse(localStorage.getItem('ls_c2') || '[]'); } catch { return []; } });
+  const [matches, setMatches] = useState<any[]>(() => { try { return JSON.parse(localStorage.getItem('ls_m2') || '[]'); } catch { return []; } });
+  const [favs, setFavs] = useState<number[]>(() => { try { return JSON.parse(localStorage.getItem('ls_f2') || '[]'); } catch { return []; } });
   const [onlyFav, setOnlyFav] = useState(false);
   const [lg, setLg] = useState('ALL');
   const [stFilter, setStFilter] = useState('ALL');
@@ -31,13 +34,13 @@ export default function App() {
 
   useEffect(() => {
     fetch('/api/matches?type=competitions').then(r => r.json()).then(d => {
-      if (Array.isArray(d.competitions)) { setComps(d.competitions); localStorage.setItem('ls_c', JSON.stringify(d.competitions)); }
+      if (Array.isArray(d.competitions)) { setComps(d.competitions); localStorage.setItem('ls_c2', JSON.stringify(d.competitions)); }
     }).catch(() => {});
   }, []);
 
   const loadMatches = (c = lg) => {
     fetch(c === 'ALL' ? '/api/matches' : `/api/matches?type=comp_matches&code=${c}`).then(r => r.json()).then(d => {
-      if (Array.isArray(d.matches)) { setMatches(d.matches); if (c === 'ALL') localStorage.setItem('ls_m', JSON.stringify(d.matches)); }
+      if (Array.isArray(d.matches)) { setMatches(d.matches); if (c === 'ALL') localStorage.setItem('ls_m2', JSON.stringify(d.matches)); }
     }).catch(() => {});
   };
 
@@ -55,7 +58,7 @@ export default function App() {
     e.stopPropagation();
     const next = favs.includes(id) ? favs.filter(x => x !== id) : [...favs, id];
     setFavs(next);
-    localStorage.setItem('ls_f', JSON.stringify(next));
+    localStorage.setItem('ls_f2', JSON.stringify(next));
   };
 
   const openMatch = async (m: any) => {
@@ -77,6 +80,9 @@ export default function App() {
     if (stFilter === 'FN') return m.status === 'FINISHED';
     return true;
   });
+
+  const crestOf = (tm: any) => tm?.crest || fallbackCrest(tm?.shortName || tm?.name || 'FC');
+  const emblemOf = (cp: any) => cp?.emblem || fallbackCrest(cp?.code || 'LG');
 
   return (
     <div>
@@ -110,7 +116,7 @@ export default function App() {
               <button className={`comp-btn ${lg === 'ALL' ? 'act' : ''}`} onClick={() => setLg('ALL')}>🌍 {t.all}</button>
               {comps.map((c: any) => (
                 <button key={c.code} className={`comp-btn ${lg === c.code ? 'act' : ''}`} onClick={() => { setLg(c.code); setSideLg(c.code); }}>
-                  {c.emblem && <img src={c.emblem} alt="" width={15} height={15} />} {c.name}
+                  <img src={emblemOf(c)} alt="" width={16} height={16} style={{ objectFit: 'contain' }} /> {c.name}
                 </button>
               ))}
             </div>
@@ -127,12 +133,18 @@ export default function App() {
             const timeTxt = live ? `${m.minute || 'LIVE'}'` : fin ? 'FT' : new Date(m.utcDate).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
             return (
               <div key={m.id} className={`match-card ${live ? 'is-live' : ''}`} onClick={() => openMatch(m)}>
-                <div className="m-meta"><span>{m.competition?.name}</span><span>{new Date(m.utcDate).toLocaleDateString([], { month: 'short', day: 'numeric' })}</span></div>
+                <div className="m-meta">
+                  <span style={{ display: 'flex', alignItems: 'center', gap: 6, fontWeight: 700, color: '#e5e7eb' }}>
+                    <img src={emblemOf(m.competition)} alt="" width={15} height={15} style={{ objectFit: 'contain' }} />
+                    {m.competition?.name}
+                  </span>
+                  <span>{new Date(m.utcDate).toLocaleDateString([], { month: 'short', day: 'numeric' })}</span>
+                </div>
                 <div className="m-grid">
                   <span className={`m-time ${live ? 'live' : ''}`}>{timeTxt}</span>
-                  <div className="m-team home"><span>{m.homeTeam.shortName || m.homeTeam.name}</span>{m.homeTeam.crest && <img src={m.homeTeam.crest} alt="" />}</div>
+                  <div className="m-team home"><span>{m.homeTeam.shortName || m.homeTeam.name}</span><img src={crestOf(m.homeTeam)} alt="" /></div>
                   <div className={`m-score ${live ? 'live' : ''}`}>{m.score.fullTime.home ?? '-'} - {m.score.fullTime.away ?? '-'}</div>
-                  <div className="m-team">{m.awayTeam.crest && <img src={m.awayTeam.crest} alt="" />}<span>{m.awayTeam.shortName || m.awayTeam.name}</span></div>
+                  <div className="m-team"><img src={crestOf(m.awayTeam)} alt="" /><span>{m.awayTeam.shortName || m.awayTeam.name}</span></div>
                   <button className={`star-btn ${favs.includes(m.id) ? 'fav' : ''}`} onClick={e => toggleFav(e, m.id)}>{favs.includes(m.id) ? '★' : '☆'}</button>
                 </div>
               </div>
@@ -147,11 +159,3 @@ export default function App() {
               <button className={sideTab === 'TBL' ? 'act' : ''} onClick={() => setSideTab('TBL')}>🏆 {t.tbl}</button>
               <button className={sideTab === 'SCR' ? 'act' : ''} onClick={() => setSideTab('SCR')}>⚽ {t.scr}</button>
             </div>
-            <select value={sideLg} onChange={e => setSideLg(e.target.value)} style={{ width: '100%', background: '#1f1f1f', color: '#fff', border: '1px solid #333', padding: '7px 10px', borderRadius: 8, marginBottom: 10, fontSize: 12 }}>
-              {comps.map((c: any) => <option key={c.code} value={c.code}>{c.name}</option>)}
-            </select>
-            {sideTab === 'TBL' ? (
-              <table><thead><tr><th>#</th><th style={{ textAlign: 'left' }}>Team</th><th>P</th><th>GD</th><th>PTS</th></tr></thead>
-                <tbody>{sideTbl.slice(0, 12).map((r: any) => <tr key={r.position}><td>{r.position}</td><td style={{ textAlign: 'left', fontWeight: 600 }}>{r.team?.shortName || r.team?.name}</td><td>{r.playedGames}</td><td>{r.goalDifference}</td><td style={{ fontWeight: 800, color: '#ff6b00' }}>{r.points}</td></tr>)}</tbody>
-              </table>
-            ) : (
