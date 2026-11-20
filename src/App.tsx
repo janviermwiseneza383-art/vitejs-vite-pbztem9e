@@ -18,7 +18,7 @@ const POPULAR = [
   { code: 'FL1', name: 'Ligue 1', emblem: 'https://football-data.org' },
 ];
 
-const fallback = (n = 'FC') => `data:image/svg+xml;utf8,${encodeURIComponent(`<svg xmlns="http://w3.org" viewBox="0 0 40 40"><circle cx="20" cy="20" r="18" fill="#1e293b" stroke="#475569" stroke-width="2"/><text x="20" y="24" font-family="Arial" font-size="11" font-weight="bold" fill="#fff" text-anchor="middle">${n.slice(0, 3).toUpperCase()}</text></svg>`)}`;
+const fallback = (n?: string | null) => `data:image/svg+xml;utf8,${encodeURIComponent(`<svg xmlns="http://w3.org" viewBox="0 0 40 40"><circle cx="20" cy="20" r="18" fill="#1e293b" stroke="#475569" stroke-width="2"/><text x="20" y="24" font-family="Arial" font-size="11" font-weight="bold" fill="#fff" text-anchor="middle">${(n || 'FC').slice(0, 3).toUpperCase()}</text></svg>`)}`;
 
 export default function App() {
   const [lang, setLang] = useState<Lang>('ENG');
