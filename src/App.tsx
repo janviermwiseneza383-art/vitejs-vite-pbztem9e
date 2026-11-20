@@ -7,16 +7,21 @@ const TXT: Record<Lang, any> = {
   FRA: { all: 'Tous', lv: 'Direct', up: 'À Venir', fn: 'Terminés', fav: 'Favoris', s: 'Rechercher...', inf: 'Infos', lnp: 'Compos', tbl: 'Classement', h2h: 'H2H', sum: 'Résumé', dev: 'Conçu par Janvier Mwiseneza' },
 };
 
+const badge = (bg: string, fg: string, txt: string) =>
+  ['data', 'image/svg+xml;utf8,'].join(':') +
+  encodeURIComponent(`<svg xmlns="http://w3.org" viewBox="0 0 40 40"><rect width="40" height="40" rx="10" fill="${bg}"/><text x="20" y="25" font-family="Arial,sans-serif" font-size="13" font-weight="bold" fill="${fg}" text-anchor="middle">${txt}</text></svg>`);
+
 const POPULAR = [
-  { code: 'RW1', name: 'Rwanda Premier League', emblem: 'https://football-data.org' },
-  { code: 'CL', name: 'UEFA Champions League', emblem: 'https://football-data.org' },
-  { code: 'PL', name: 'Premier League', emblem: 'https://football-data.org' },
-  { code: 'PD', name: 'La Liga', emblem: 'https://football-data.org' },
-  { code: 'BL1', name: 'Bundesliga', emblem: 'https://football-data.org' },
-  { code: 'SA', name: 'Serie A', emblem: 'https://football-data.org' },
-  { code: 'BSA', name: 'Brasileirão Série A', emblem: 'https://football-data.org' },
-  { code: 'FL1', name: 'Ligue 1', emblem: 'https://football-data.org' },
+  { code: 'RW1', name: 'Rwanda Premier League', emblem: badge('#00a1de', '#fad201', 'RW') },
+  { code: 'CL', name: 'UEFA Champions League', emblem: badge('#0e1e5b', '#ffffff', 'UCL') },
+  { code: 'PL', name: 'Premier League', emblem: badge('#38003c', '#00ff85', 'PL') },
+  { code: 'PD', name: 'La Liga', emblem: badge('#ee8707', '#ffffff', 'LL') },
+  { code: 'BL1', name: 'Bundesliga', emblem: badge('#d20515', '#ffffff', 'BL') },
+  { code: 'SA', name: 'Serie A', emblem: badge('#024494', '#ffffff', 'SA') },
+  { code: 'BSA', name: 'Brasileirão Série A', emblem: badge('#009c3b', '#ffdf00', 'BR') },
+  { code: 'FL1', name: 'Ligue 1', emblem: badge('#dae025', '#091c3e', 'L1') },
 ];
+
 
 const fallback = (n?: string | null) => `data:image/svg+xml;utf8,${encodeURIComponent(`<svg xmlns="http://w3.org" viewBox="0 0 40 40"><circle cx="20" cy="20" r="18" fill="#1e293b" stroke="#475569" stroke-width="2"/><text x="20" y="24" font-family="Arial" font-size="11" font-weight="bold" fill="#fff" text-anchor="middle">${(n || 'FC').slice(0, 3).toUpperCase()}</text></svg>`)}`;
 
