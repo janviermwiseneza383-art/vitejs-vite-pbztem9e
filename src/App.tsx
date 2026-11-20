@@ -1,38 +1,64 @@
-            ) : (
-              <table><thead><tr><th>#</th><th style={{ textAlign: 'left' }}>Player</th><th>⚽</th></tr></thead>
-                <tbody>{sideScr.slice(0, 10).map((sc: any, i: number) => <tr key={i}><td>{i + 1}</td><td style={{ textAlign: 'left' }}><strong>{sc.player?.name}</strong><br /><small style={{ color: '#9ca3af' }}>{sc.team?.shortName}</small></td><td style={{ fontWeight: 800, color: '#4ade80' }}>{sc.goals}</td></tr>)}</tbody>
-              </table>
-            )}
-          </div>
-        </aside>
-      </main>
+import { useState, useEffect } from 'react';
 
-      {sel && (<div className="modal-bg" onClick={() => setSel(null)}><div className="modal" onClick={e => e.stopPropagation()}>
-        <div className="m-meta">
-          <span style={{ display: 'flex', alignItems: 'center', gap: 6, fontWeight: 700, color: '#fff' }}>
-            <img src={emblemOf(sel.competition)} alt="" width={16} height={16} /> {sel.competition?.name}
-          </span>
-          <button onClick={() => setSel(null)} style={{ background: 'none', border: 'none', color: '#fff', fontSize: 18, cursor: 'pointer' }}>✕</button>
-        </div>
-        <div className="m-grid" style={{ background: '#0b0b0b', padding: 14, borderRadius: 12, gridTemplateColumns: '1fr auto 1fr' }}>
-          <div className="m-team home"><span>{sel.homeTeam.shortName || sel.homeTeam.name}</span><img src={crestOf(sel.homeTeam)} alt="" /></div>
-          <div className="m-score" style={{ fontSize: 20 }}>{sel.score.fullTime.home ?? '-'} - {sel.score.fullTime.away ?? '-'}</div>
-          <div className="m-team"><img src={crestOf(sel.awayTeam)} alt="" /><span>{sel.awayTeam.shortName || sel.awayTeam.name}</span></div>
-        </div>
-        <div className="ls-tabs">
-          {[{ id: 'INFO', l: t.inf }, { id: 'SUM', l: t.sum }, { id: 'STS', l: t.sts }, { id: 'LNP', l: t.lnp }, { id: 'TBL', l: t.tbl }, { id: 'H2H', l: t.h2h }].map(k => (
-            <button key={k.id} className={mTab === k.id ? 'act' : ''} onClick={() => setMTab(k.id as any)}>{k.l}</button>
-          ))}
-        </div>
-        {mTab === 'INFO' && <div className="ev-row"><span>🏟️ Stadium: <strong>{det?.venue || sel.venue || 'N/A'}</strong></span><span>📅 {new Date(sel.utcDate).toLocaleString()}</span></div>}
-        {mTab === 'SUM' && (Array.isArray(det?.goals) && det.goals.length > 0 ? det.goals.map((g: any, i: number) => <div key={i} className="ev-row"><span>⚽ <strong>{g.scorer?.name}</strong> ({g.team?.name})</span><strong style={{ color: '#ff6b00' }}>{g.minute}'</strong></div>) : <p style={{ textAlign: 'center', color: '#9ca3af', padding: 20 }}>No match events yet.</p>)}
-        {mTab === 'STS' && (det?.homeTeam?.statistics ? <div><div className="ev-row"><strong>{det.homeTeam.statistics.ball_possession ?? 50}%</strong><span>Possession</span><strong>{det.awayTeam.statistics.ball_possession ?? 50}%</strong></div><div className="ev-row"><strong>{det.homeTeam.statistics.shots_on_goal ?? 0}</strong><span>Shots on Target</span><strong>{det.awayTeam.statistics.shots_on_goal ?? 0}</strong></div></div> : <p style={{ textAlign: 'center', color: '#9ca3af', padding: 20 }}>Stats available during/after match.</p>)}
-        {mTab === 'LNP' && (det?.homeTeam?.lineup?.length > 0 ? <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12, fontSize: 13 }}><div><strong>{sel.homeTeam.shortName}</strong>{det.homeTeam.lineup.map((p: any) => <div key={p.id}>#{p.shirtNumber} {p.name}</div>)}</div><div><strong>{sel.awayTeam.shortName}</strong>{det.awayTeam.lineup.map((p: any) => <div key={p.id}>#{p.shirtNumber} {p.name}</div>)}</div></div> : <p style={{ textAlign: 'center', color: '#9ca3af', padding: 20 }}>Lineups released ~1h before kickoff.</p>)}
-        {mTab === 'TBL' && <table><thead><tr><th>#</th><th style={{ textAlign: 'left' }}>Team</th><th>P</th><th>GD</th><th>PTS</th></tr></thead><tbody>{mTbl.map((r: any) => <tr key={r.position} style={{ background: [sel.homeTeam.id, sel.awayTeam.id].includes(r.team?.id) ? '#262626' : '' }}><td>{r.position}</td><td style={{ textAlign: 'left', display: 'flex', alignItems: 'center', gap: 6 }}><img src={crestOf(r.team)} alt="" width={16} height={16} />{r.team?.shortName || r.team?.name}</td><td>{r.playedGames}</td><td>{r.goalDifference}</td><td style={{ fontWeight: 800 }}>{r.points}</td></tr>)}</tbody></table>}
-        {mTab === 'H2H' && (h2h.length > 0 ? h2h.map((hm: any) => <div key={hm.id} className="ev-row"><span>{hm.utcDate?.slice(0, 10)}</span><span><strong>{hm.homeTeam?.shortName}</strong> {hm.score?.fullTime?.home ?? '-'} - {hm.score?.fullTime?.away ?? '-'} <strong>{hm.awayTeam?.shortName}</strong></span></div>) : <p style={{ textAlign: 'center', color: '#9ca3af', padding: 20 }}>No previous H2H matches.</p>)}
-      </div></div>)}
+type Lang = 'KINY' | 'ENG' | 'FRA';
+const TXT: Record<Lang, any> = {
+  KINY: { all: 'All', lv: 'Live', up: 'Upcoming', fn: 'Finished', fav: 'Favourites', s: 'Shakisha ikipe...', inf: 'Info', lnp: 'Line-ups', tbl: 'Table', h2h: 'H2H', sum: 'Summary', dev: 'Yakozwe na Janvier Mwiseneza' },
+  ENG: { all: 'All', lv: 'Live', up: 'Upcoming', fn: 'Finished', fav: 'Favourites', s: 'Search teams...', inf: 'Info', lnp: 'Line-ups', tbl: 'Table', h2h: 'H2H', sum: 'Summary', dev: 'Designed by Janvier Mwiseneza' },
+  FRA: { all: 'Tous', lv: 'Direct', up: 'À Venir', fn: 'Terminés', fav: 'Favoris', s: 'Rechercher...', inf: 'Infos', lnp: 'Compos', tbl: 'Classement', h2h: 'H2H', sum: 'Résumé', dev: 'Conçu par Janvier Mwiseneza' },
+};
 
-      <footer>© {new Date().getFullYear()} <strong>Kigali Update Score</strong> • {t.dev}</footer>
-    </div>
-  );
-}
+const POPULAR = [
+  { code: 'RW1', name: 'Rwanda Premier League', emblem: 'https://football-data.org' },
+  { code: 'CL', name: 'UEFA Champions League', emblem: 'https://football-data.org' },
+  { code: 'PL', name: 'Premier League', emblem: 'https://football-data.org' },
+  { code: 'PD', name: 'La Liga', emblem: 'https://football-data.org' },
+  { code: 'BL1', name: 'Bundesliga', emblem: 'https://football-data.org' },
+  { code: 'SA', name: 'Serie A', emblem: 'https://football-data.org' },
+  { code: 'BSA', name: 'Brasileirão Série A', emblem: 'https://football-data.org' },
+  { code: 'FL1', name: 'Ligue 1', emblem: 'https://football-data.org' },
+];
+
+const fallback = (n = 'FC') => `data:image/svg+xml;utf8,${encodeURIComponent(`<svg xmlns="http://w3.org" viewBox="0 0 40 40"><circle cx="20" cy="20" r="18" fill="#1e293b" stroke="#475569" stroke-width="2"/><text x="20" y="24" font-family="Arial" font-size="11" font-weight="bold" fill="#fff" text-anchor="middle">${n.slice(0, 3).toUpperCase()}</text></svg>`)}`;
+
+export default function App() {
+  const [lang, setLang] = useState<Lang>('ENG');
+  const [matches, setMatches] = useState<any[]>(() => { try { return JSON.parse(localStorage.getItem('kus_v8') || '[]'); } catch { return []; } });
+  const [favs, setFavs] = useState<number[]>(() => { try { return JSON.parse(localStorage.getItem('kus_f8') || '[]'); } catch { return []; } });
+  const [lg, setLg] = useState('ALL');
+  const [st, setSt] = useState('ALL');
+  const [q, setQ] = useState('');
+  const [sideLg, setSideLg] = useState('PL');
+  const [sideTbl, setSideTbl] = useState<any[]>([]);
+  const [sel, setSel] = useState<any>(null);
+  const [mTab, setMTab] = useState<'INFO' | 'LNP' | 'TBL' | 'H2H' | 'SUM'>('INFO');
+  const [det, setDet] = useState<any>(null);
+  const [mTbl, setMTbl] = useState<any[]>([]);
+  const [h2h, setH2h] = useState<any[]>([]);
+  const t = TXT[lang];
+
+  const load = (c = lg) => {
+    fetch(c === 'ALL' ? '/api/matches' : `/api/matches?type=comp_matches&code=${c}`).then(r => r.json()).then(d => {
+      if (Array.isArray(d.matches)) { setMatches(d.matches); if (c === 'ALL') localStorage.setItem('kus_v8', JSON.stringify(d.matches)); }
+    }).catch(() => {});
+  };
+
+  useEffect(() => { load(lg); const i = setInterval(() => load(lg), 30000); return () => clearInterval(i); }, [lg]);
+  useEffect(() => {
+    fetch(`/api/matches?type=standings&code=${sideLg}`).then(r => r.json()).then(d => setSideTbl((Array.isArray(d?.standings) ? d.standings.at(0)?.table : []) || [])).catch(() => {});
+  }, [sideLg]);
+
+  const toggleFav = (e: any, id: number) => {
+    e.stopPropagation();
+    const nx = favs.includes(id) ? favs.filter(x => x !== id) : [...favs, id];
+    setFavs(nx); localStorage.setItem('kus_f8', JSON.stringify(nx));
+  };
+
+  const openMatch = async (m: any) => {
+    setSel(m); setMTab('INFO'); setDet(null); setMTbl([]); setH2h([]);
+    const [d1, d2, d3] = await Promise.all([
+      fetch(`/api/matches?type=detail&id=${m.id}`).then(r => r.json()).catch(() => null),
+      fetch(`/api/matches?type=standings&code=${m.competition?.code}`).then(r => r.json()).catch(() => null),
+      fetch(`/api/matches?type=h2h&id=${m.id}`).then(r => r.json()).catch(() => null),
+    ]);
+    setDet(d1); setMTbl((Array.isArray(d2?.standings) ? d2.standings.at(0)?.table : []) || []); setH2h(d3?.matches || []);
+  };
