@@ -10,35 +10,48 @@ const TXT: Record<Lang, any> = {
 const h = (u: string) => ['https', '//' + u].join(':');
 
 const POPULAR = [
-  { code: 'RW1', name: 'Rwanda Premier League', bg: '#00a1de', fg: '#fad201', tag: 'RW', img: h('upload.wikimedia.org/wikipedia/en/thumb/3/36/Rwanda_Premier_League_logo.png/200px-Rwanda_Premier_League_logo.png') },
-  { code: 'CL', name: 'UEFA Champions League', bg: '#0e1e5b', fg: '#ffffff', tag: 'UCL', img: h('crests.football-data.org/CL.png') },
-  { code: 'UEL', name: 'UEFA Europa League', bg: '#f97316', fg: '#111111', tag: 'UEL', img: h('upload.wikimedia.org/wikipedia/en/thumb/0/03/Europa_League_2021.svg/200px-Europa_League_2021.svg.png') },
+  { code: 'RW1', name: 'Rwanda Premier League', bg: 'linear-gradient(180deg,#00a1de 45%,#fad201 75%,#20603d 100%)', fg: '#111', tag: '🇷🇼', img: '' },
+  { code: 'CL', name: 'UEFA Champions League', bg: '#0e1e5b', fg: '#fff', tag: 'UCL', img: h('crests.football-data.org/CL.png') },
+  { code: 'UEL', name: 'UEFA Europa League', bg: 'linear-gradient(135deg,#111 50%,#f97316 100%)', fg: '#fff', tag: 'UEL', img: '' },
   { code: 'PL', name: 'Premier League', bg: '#38003c', fg: '#00ff85', tag: 'PL', img: h('crests.football-data.org/PL.png') },
-  { code: 'ELC', name: 'EFL Championship', bg: '#1d4ed8', fg: '#ffffff', tag: 'ELC', img: h('crests.football-data.org/ELC.png') },
-  { code: 'PD', name: 'La Liga', bg: '#ee8707', fg: '#ffffff', tag: 'LL', img: h('crests.football-data.org/laliga.png') },
-  { code: 'BL1', name: 'Bundesliga', bg: '#d20515', fg: '#ffffff', tag: 'BL', img: h('crests.football-data.org/BL1.png') },
-  { code: 'SA', name: 'Serie A', bg: '#024494', fg: '#ffffff', tag: 'SA', img: h('crests.football-data.org/SA.png') },
+  { code: 'ELC', name: 'EFL Championship', bg: '#1d4ed8', fg: '#fff', tag: 'ELC', img: h('crests.football-data.org/ELC.png') },
+  { code: 'PD', name: 'La Liga', bg: '#ee8707', fg: '#fff', tag: 'LL', img: h('crests.football-data.org/laliga.png') },
+  { code: 'BL1', name: 'Bundesliga', bg: '#d20515', fg: '#fff', tag: 'BL', img: h('crests.football-data.org/BL1.png') },
+  { code: 'SA', name: 'Serie A', bg: '#024494', fg: '#fff', tag: 'SA', img: h('crests.football-data.org/SA.png') },
   { code: 'BSA', name: 'Brasileirão Série A', bg: '#009c3b', fg: '#ffdf00', tag: 'BR', img: h('crests.football-data.org/bsa.png') },
   { code: 'FL1', name: 'Ligue 1', bg: '#dae025', fg: '#091c3e', tag: 'L1', img: h('crests.football-data.org/FL1.png') },
 ];
 
+const RW_BADGES: Record<string, { bg: string; fg: string; bd: string; txt: string }> = {
+  'APR FC': { bg: 'linear-gradient(135deg,#000 55%,#fff 100%)', fg: '#fff', bd: '#fff', txt: 'APR' },
+  'Rayon Sports': { bg: 'linear-gradient(135deg,#1d4ed8 60%,#fff 100%)', fg: '#fff', bd: '#60a5fa', txt: 'RS' },
+  'Police FC': { bg: 'linear-gradient(135deg,#1e3a8a 60%,#facc15 100%)', fg: '#fff', bd: '#facc15', txt: 'POL' },
+  'Mukura VS': { bg: 'linear-gradient(135deg,#eab308 60%,#111 100%)', fg: '#111', bd: '#fde047', txt: 'MVS' },
+  'Kiyovu Sports': { bg: 'linear-gradient(135deg,#15803d 60%,#fff 100%)', fg: '#fff', bd: '#4ade80', txt: 'KSC' },
+  'AS Kigali': { bg: 'linear-gradient(135deg,#0284c7 60%,#facc15 100%)', fg: '#fff', bd: '#38bdf8', txt: 'ASK' },
+  'Gasogi Utd': { bg: 'linear-gradient(135deg,#dc2626 60%,#facc15 100%)', fg: '#fff', bd: '#f87171', txt: 'GAS' },
+  'Etincelles': { bg: 'linear-gradient(135deg,#b91c1c 60%,#fff 100%)', fg: '#fff', bd: '#fca5a5', txt: 'ETI' },
+};
+
 const CompLogo = ({ p }: { p: any }) => {
   const [err, setErr] = useState(false);
-  if (p.img && !err) return <img src={p.img} alt="" onError={() => setErr(true)} style={{ width: 22, height: 22, objectFit: 'contain', background: '#fff', borderRadius: 5, padding: 2, flexShrink: 0 }} />;
-  return <span style={{ display: 'inline-flex', alignItems: 'center', justifyContent: 'center', width: 22, height: 22, borderRadius: 5, background: p.bg, color: p.fg, fontSize: 9, fontWeight: 800, flexShrink: 0 }}>{p.tag}</span>;
+  if (p.img && !err) return <img src={p.img} alt="" onError={() => setErr(true)} style={{ width: 22, height: 22, objectFit: 'contain', background: '#fff', borderRadius: 6, padding: 2, flexShrink: 0 }} />;
+  return <span style={{ display: 'inline-flex', alignItems: 'center', justifyContent: 'center', width: 22, height: 22, borderRadius: 6, background: p.bg, color: p.fg, fontSize: p.tag.length > 2 ? 8 : 12, fontWeight: 900, flexShrink: 0 }}>{p.tag}</span>;
 };
 
 const Crest = ({ tm }: { tm: any }) => {
   const [err, setErr] = useState(false);
   const name = tm?.shortName || tm?.name || 'FC';
-  if (tm?.crest && !err) return <img src={tm.crest} alt="" onError={() => setErr(true)} style={{ width: 22, height: 22, objectFit: 'contain', flexShrink: 0 }} />;
-  return <span style={{ display: 'inline-flex', alignItems: 'center', justifyContent: 'center', width: 22, height: 22, borderRadius: '50%', background: '#1e293b', color: '#f8fafc', fontSize: 9, fontWeight: 800, border: '1px solid rgba(255,255,255,0.25)', flexShrink: 0 }}>{name.slice(0, 3).toUpperCase()}</span>;
+  if (tm?.crest && !err && !tm.crest.includes('wikimedia')) return <img src={tm.crest} alt="" onError={() => setErr(true)} style={{ width: 22, height: 22, objectFit: 'contain', flexShrink: 0 }} />;
+  const rw = RW_BADGES[name];
+  if (rw) return <span style={{ display: 'inline-flex', alignItems: 'center', justifyContent: 'center', width: 24, height: 24, borderRadius: '4px 4px 12px 12px', background: rw.bg, color: rw.fg, fontSize: 8, fontWeight: 900, border: `1.5px solid ${rw.bd}`, textShadow: '0 1px 2px #000', flexShrink: 0 }}>{rw.txt}</span>;
+  return <span style={{ display: 'inline-flex', alignItems: 'center', justifyContent: 'center', width: 22, height: 22, borderRadius: '50%', background: '#1e293b', color: '#f8fafc', fontSize: 9, fontWeight: 800, border: '1px solid #475569', flexShrink: 0 }}>{name.slice(0, 3).toUpperCase()}</span>;
 };
 
 export default function App() {
   const [lang, setLang] = useState<Lang>('ENG');
-  const [matches, setMatches] = useState<any[]>(() => { try { return JSON.parse(localStorage.getItem('kus_v16') || '[]'); } catch { return []; } });
-  const [favs, setFavs] = useState<number[]>(() => { try { return JSON.parse(localStorage.getItem('kus_f16') || '[]'); } catch { return []; } });
+  const [matches, setMatches] = useState<any[]>(() => { try { return JSON.parse(localStorage.getItem('kus_v17') || '[]'); } catch { return []; } });
+  const [favs, setFavs] = useState<number[]>(() => { try { return JSON.parse(localStorage.getItem('kus_f17') || '[]'); } catch { return []; } });
   const [lg, setLg] = useState('ALL');
   const [st, setSt] = useState('ALL');
   const [q, setQ] = useState('');
@@ -51,16 +64,16 @@ export default function App() {
   const [h2h, setH2h] = useState<any[]>([]);
   const t = TXT[lang];
 
-    const load = (c = lg) => {
+  const load = (c = lg) => {
     fetch(c === 'ALL' ? '/api/matches' : `/api/matches?type=comp_matches&code=${c}`).then(r => r.json()).then(d => {
-      if (Array.isArray(d.matches)) { setMatches(d.matches); if (c === 'ALL') localStorage.setItem('kus_v16', JSON.stringify(d.matches)); }
+      if (Array.isArray(d.matches)) { setMatches(d.matches); if (c === 'ALL') localStorage.setItem('kus_v17', JSON.stringify(d.matches)); }
     }).catch(() => {});
   };
 
   useEffect(() => { load(lg); const i = setInterval(() => load(lg), 30000); return () => clearInterval(i); }, [lg]);
   useEffect(() => { fetch(`/api/matches?type=standings&code=${sideLg}`).then(r => r.json()).then(d => setSideTbl((Array.isArray(d?.standings) ? d.standings.at(0)?.table : []) || [])).catch(() => {}); }, [sideLg]);
 
-  const toggleFav = (e: any, id: number) => { e.stopPropagation(); const nx = favs.includes(id) ? favs.filter(x => x !== id) : [...favs, id]; setFavs(nx); localStorage.setItem('kus_f16', JSON.stringify(nx)); };
+  const toggleFav = (e: any, id: number) => { e.stopPropagation(); const nx = favs.includes(id) ? favs.filter(x => x !== id) : [...favs, id]; setFavs(nx); localStorage.setItem('kus_f17', JSON.stringify(nx)); };
 
   const openMatch = async (m: any) => {
     setSel(m); setMTab('INFO'); setDet(null); setMTbl([]); setH2h([]);
@@ -119,10 +132,4 @@ export default function App() {
         {mTab === 'SUM' && (goals.length > 0 ? goals.map((g: any, i: number) => <div key={i} className="ev"><span>⚽ <strong>{g.scorer?.name}</strong> ({g.team?.name})</span><strong style={{ color: '#ff6b00' }}>{g.minute}'</strong></div>) : <div><div className="ev"><span>🏆 <strong>Result:</strong> {sel.homeTeam.shortName} {sel.score.fullTime.home ?? 0} - {sel.score.fullTime.away ?? 0} {sel.awayTeam.shortName}</span><strong style={{ color: '#ff6b00' }}>{sel.status}</strong></div>{sel.score.halfTime?.home !== null && sel.score.halfTime?.home !== undefined && <div className="ev"><span>⏱️ Half-Time (HT)</span><strong>{sel.score.halfTime.home} - {sel.score.halfTime.away}</strong></div>}{refObj && <div className="ev"><span>🗣️ Referee</span><strong>{refObj.name}</strong></div>}</div>)}
         {mTab === 'LNP' && (det?.homeTeam?.lineup?.length > 0 ? <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12, fontSize: 13 }}><div><strong>{sel.homeTeam.shortName}</strong>{det.homeTeam.lineup.map((p: any) => <div key={p.id}>#{p.shirtNumber} {p.name}</div>)}</div><div><strong>{sel.awayTeam.shortName}</strong>{det.awayTeam.lineup.map((p: any) => <div key={p.id}>#{p.shirtNumber} {p.name}</div>)}</div></div> : <p style={{ textAlign: 'center', color: '#9ca3af', padding: 20 }}>Line-ups released ~1h before kickoff.</p>)}
         {mTab === 'TBL' && <table><thead><tr><th>#</th><th style={{ textAlign: 'left' }}>Team</th><th>P</th><th>GD</th><th>PTS</th></tr></thead><tbody>{mTbl.map((r: any) => <tr key={r.position} style={{ background: [sel.homeTeam.id, sel.awayTeam.id].includes(r.team?.id) ? '#262626' : '' }}><td>{r.position}</td><td style={{ textAlign: 'left' }}>{r.team?.shortName || r.team?.name}</td><td>{r.playedGames}</td><td>{r.goalDifference}</td><td style={{ fontWeight: 800 }}>{r.points}</td></tr>)}</tbody></table>}
-        {mTab === 'H2H' && (h2h.length > 0 ? h2h.map((hm: any) => <div key={hm.id} className="ev"><span>{hm.utcDate?.slice(0, 10)}</span><span><strong>{hm.homeTeam?.shortName}</strong> {hm.score?.fullTime?.home ?? '-'} - {hm.score?.fullTime?.away ?? '-'} <strong>{hm.awayTeam?.shortName}</strong></span></div>) : <p style={{ textAlign: 'center', color: '#9ca3af', padding: 20 }}>No previous H2H matches.</p>)}
-      </div></div>)}
-      <footer>© {new Date().getFullYear()} <strong>KIGALI UPDATE SCORE</strong> • {t.dev}</footer>
-    </div>
-  );
-}
 
