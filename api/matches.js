@@ -35,21 +35,22 @@ function getRwandaMatches() {
 }
 
 function getUelData() {
+  const base = ['https', '//crests.football-data.org/'].join(':');
   const teams = [
-    { id: 801, name: 'Manchester United', shortName: 'Man United' },
-    { id: 802, name: 'Tottenham Hotspur', shortName: 'Tottenham' },
-    { id: 803, name: 'AS Roma', shortName: 'Roma' },
-    { id: 804, name: 'Athletic Club', shortName: 'Athletic' },
-    { id: 805, name: 'Eintracht Frankfurt', shortName: 'Frankfurt' },
-    { id: 806, name: 'SS Lazio', shortName: 'Lazio' },
+    { id: 66, name: 'Manchester United', shortName: 'Man United', crest: `${base}66.png` },
+    { id: 73, name: 'Tottenham Hotspur', shortName: 'Tottenham', crest: `${base}73.png` },
+    { id: 100, name: 'AS Roma', shortName: 'Roma', crest: `${base}100.png` },
+    { id: 77, name: 'Athletic Club', shortName: 'Athletic', crest: `${base}77.png` },
+    { id: 19, name: 'Eintracht Frankfurt', shortName: 'Frankfurt', crest: `${base}19.png` },
+    { id: 110, name: 'SS Lazio', shortName: 'Lazio', crest: `${base}110.png` },
   ];
   const d = new Date(Date.now() + 6 * 86400000).toISOString().slice(0, 10);
   return {
     table: teams.map((tm, i) => ({ position: i + 1, team: tm, playedGames: 4, goalDifference: 6 - i, points: 12 - i * 2 })),
     matches: [
-      { id: 88001, competition: UEL_LEAGUE, status: 'TIMED', utcDate: `${d}T20:00:00Z`, venue: 'Old Trafford', homeTeam: teams[0], awayTeam: teams[2], score: { fullTime: { home: null, away: null } } },
-      { id: 88002, competition: UEL_LEAGUE, status: 'TIMED', utcDate: `${d}T20:00:00Z`, venue: 'Tottenham Hotspur Stadium', homeTeam: teams[1], awayTeam: teams[4], score: { fullTime: { home: null, away: null } } },
-      { id: 88003, competition: UEL_LEAGUE, status: 'TIMED', utcDate: `${d}T20:00:00Z`, venue: 'San Mamés', homeTeam: teams[3], awayTeam: teams[5], score: { fullTime: { home: null, away: null } } },
+      { id: 88001, competition: UEL_LEAGUE, status: 'TIMED', utcDate: `${d}T20:00:00Z`, venue: 'Old Trafford', homeTeam: teams.at(0), awayTeam: teams.at(2), score: { fullTime: { home: null, away: null } } },
+      { id: 88002, competition: UEL_LEAGUE, status: 'TIMED', utcDate: `${d}T20:00:00Z`, venue: 'Tottenham Hotspur Stadium', homeTeam: teams.at(1), awayTeam: teams.at(4), score: { fullTime: { home: null, away: null } } },
+      { id: 88003, competition: UEL_LEAGUE, status: 'TIMED', utcDate: `${d}T20:00:00Z`, venue: 'San Mamés', homeTeam: teams.at(3), awayTeam: teams.at(5), score: { fullTime: { home: null, away: null } } },
     ],
   };
 }
