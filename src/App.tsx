@@ -7,38 +7,38 @@ const TXT: Record<Lang, any> = {
   FRA: { all: 'Tous', lv: 'Direct', up: 'À Venir', fn: 'Terminés', fav: 'Favoris', s: 'Rechercher...', inf: 'Infos', lnp: 'Compos', tbl: 'Classement', h2h: 'H2H', sum: 'Résumé', dev: 'Conçu par Janvier Mwiseneza' },
 };
 
+const h = (u: string) => ['https', '//' + u].join(':');
+
 const POPULAR = [
-  { code: 'RW1', name: 'Rwanda Premier League', bg: '#00a1de', fg: '#fad201', tag: 'RW' },
-  { code: 'CL', name: 'UEFA Champions League', bg: '#0e1e5b', fg: '#ffffff', tag: 'UCL' },
-  { code: 'UEL', name: 'UEFA Europa League', bg: '#f97316', fg: '#111111', tag: 'UEL' },
-  { code: 'PL', name: 'Premier League', bg: '#38003c', fg: '#00ff85', tag: 'PL' },
-  { code: 'ELC', name: 'EFL Championship', bg: '#1d4ed8', fg: '#ffffff', tag: 'ELC' },
-  { code: 'PD', name: 'La Liga', bg: '#ee8707', fg: '#ffffff', tag: 'LL' },
-  { code: 'BL1', name: 'Bundesliga', bg: '#d20515', fg: '#ffffff', tag: 'BL' },
-  { code: 'SA', name: 'Serie A', bg: '#024494', fg: '#ffffff', tag: 'SA' },
-  { code: 'BSA', name: 'Brasileirão Série A', bg: '#009c3b', fg: '#ffdf00', tag: 'BR' },
-  { code: 'FL1', name: 'Ligue 1', bg: '#dae025', fg: '#091c3e', tag: 'L1' },
+  { code: 'RW1', name: 'Rwanda Premier League', bg: '#00a1de', fg: '#fad201', tag: 'RW', img: h('upload.wikimedia.org/wikipedia/en/thumb/3/36/Rwanda_Premier_League_logo.png/200px-Rwanda_Premier_League_logo.png') },
+  { code: 'CL', name: 'UEFA Champions League', bg: '#0e1e5b', fg: '#ffffff', tag: 'UCL', img: h('crests.football-data.org/CL.png') },
+  { code: 'UEL', name: 'UEFA Europa League', bg: '#f97316', fg: '#111111', tag: 'UEL', img: h('upload.wikimedia.org/wikipedia/en/thumb/0/03/Europa_League_2021.svg/200px-Europa_League_2021.svg.png') },
+  { code: 'PL', name: 'Premier League', bg: '#38003c', fg: '#00ff85', tag: 'PL', img: h('crests.football-data.org/PL.png') },
+  { code: 'ELC', name: 'EFL Championship', bg: '#1d4ed8', fg: '#ffffff', tag: 'ELC', img: h('crests.football-data.org/ELC.png') },
+  { code: 'PD', name: 'La Liga', bg: '#ee8707', fg: '#ffffff', tag: 'LL', img: h('crests.football-data.org/laliga.png') },
+  { code: 'BL1', name: 'Bundesliga', bg: '#d20515', fg: '#ffffff', tag: 'BL', img: h('crests.football-data.org/BL1.png') },
+  { code: 'SA', name: 'Serie A', bg: '#024494', fg: '#ffffff', tag: 'SA', img: h('crests.football-data.org/SA.png') },
+  { code: 'BSA', name: 'Brasileirão Série A', bg: '#009c3b', fg: '#ffdf00', tag: 'BR', img: h('crests.football-data.org/bsa.png') },
+  { code: 'FL1', name: 'Ligue 1', bg: '#dae025', fg: '#091c3e', tag: 'L1', img: h('crests.football-data.org/FL1.png') },
 ];
 
-const TEAM_COLORS: Record<string, [string, string]> = {
-  'APR FC': ['#111111', '#ffffff'], 'Rayon Sports': ['#1d4ed8', '#ffffff'], 'Police FC': ['#1e3a8a', '#facc15'],
-  'Mukura VS': ['#eab308', '#111111'], 'Kiyovu Sports': ['#15803d', '#ffffff'], 'AS Kigali': ['#0284c7', '#ffffff'],
-  'Gasogi Utd': ['#dc2626', '#facc15'], 'Etincelles': ['#b91c1c', '#ffffff'], 'Man United': ['#da291c', '#fbe122'],
-  'Tottenham': ['#ffffff', '#132257'], 'Roma': ['#8e1f2f', '#f0bc42'], 'Lazio': ['#87d8f7', '#111111'],
+const CompLogo = ({ p }: { p: any }) => {
+  const [err, setErr] = useState(false);
+  if (p.img && !err) return <img src={p.img} alt="" onError={() => setErr(true)} style={{ width: 22, height: 22, objectFit: 'contain', background: '#fff', borderRadius: 5, padding: 2, flexShrink: 0 }} />;
+  return <span style={{ display: 'inline-flex', alignItems: 'center', justifyContent: 'center', width: 22, height: 22, borderRadius: 5, background: p.bg, color: p.fg, fontSize: 9, fontWeight: 800, flexShrink: 0 }}>{p.tag}</span>;
 };
 
 const Crest = ({ tm }: { tm: any }) => {
   const [err, setErr] = useState(false);
   const name = tm?.shortName || tm?.name || 'FC';
-  if (tm?.crest && !err && !tm.crest.startsWith('data')) return <img src={tm.crest} alt="" onError={() => setErr(true)} />;
-  const [bg, fg] = TEAM_COLORS[name] || ['#1e293b', '#f8fafc'];
-  return <span style={{ display: 'inline-flex', alignItems: 'center', justifyContent: 'center', width: 22, height: 22, borderRadius: '50%', background: bg, color: fg, fontSize: 9, fontWeight: 800, border: '1px solid rgba(255,255,255,0.25)', flexShrink: 0 }}>{name.slice(0, 3).toUpperCase()}</span>;
+  if (tm?.crest && !err) return <img src={tm.crest} alt="" onError={() => setErr(true)} style={{ width: 22, height: 22, objectFit: 'contain', flexShrink: 0 }} />;
+  return <span style={{ display: 'inline-flex', alignItems: 'center', justifyContent: 'center', width: 22, height: 22, borderRadius: '50%', background: '#1e293b', color: '#f8fafc', fontSize: 9, fontWeight: 800, border: '1px solid rgba(255,255,255,0.25)', flexShrink: 0 }}>{name.slice(0, 3).toUpperCase()}</span>;
 };
 
 export default function App() {
   const [lang, setLang] = useState<Lang>('ENG');
-  const [matches, setMatches] = useState<any[]>(() => { try { return JSON.parse(localStorage.getItem('kus_v15') || '[]'); } catch { return []; } });
-  const [favs, setFavs] = useState<number[]>(() => { try { return JSON.parse(localStorage.getItem('kus_f15') || '[]'); } catch { return []; } });
+  const [matches, setMatches] = useState<any[]>(() => { try { return JSON.parse(localStorage.getItem('kus_v16') || '[]'); } catch { return []; } });
+  const [favs, setFavs] = useState<number[]>(() => { try { return JSON.parse(localStorage.getItem('kus_f16') || '[]'); } catch { return []; } });
   const [lg, setLg] = useState('ALL');
   const [st, setSt] = useState('ALL');
   const [q, setQ] = useState('');
@@ -53,14 +53,14 @@ export default function App() {
 
     const load = (c = lg) => {
     fetch(c === 'ALL' ? '/api/matches' : `/api/matches?type=comp_matches&code=${c}`).then(r => r.json()).then(d => {
-      if (Array.isArray(d.matches)) { setMatches(d.matches); if (c === 'ALL') localStorage.setItem('kus_v15', JSON.stringify(d.matches)); }
+      if (Array.isArray(d.matches)) { setMatches(d.matches); if (c === 'ALL') localStorage.setItem('kus_v16', JSON.stringify(d.matches)); }
     }).catch(() => {});
   };
 
   useEffect(() => { load(lg); const i = setInterval(() => load(lg), 30000); return () => clearInterval(i); }, [lg]);
   useEffect(() => { fetch(`/api/matches?type=standings&code=${sideLg}`).then(r => r.json()).then(d => setSideTbl((Array.isArray(d?.standings) ? d.standings.at(0)?.table : []) || [])).catch(() => {}); }, [sideLg]);
 
-  const toggleFav = (e: any, id: number) => { e.stopPropagation(); const nx = favs.includes(id) ? favs.filter(x => x !== id) : [...favs, id]; setFavs(nx); localStorage.setItem('kus_f15', JSON.stringify(nx)); };
+  const toggleFav = (e: any, id: number) => { e.stopPropagation(); const nx = favs.includes(id) ? favs.filter(x => x !== id) : [...favs, id]; setFavs(nx); localStorage.setItem('kus_f16', JSON.stringify(nx)); };
 
   const openMatch = async (m: any) => {
     setSel(m); setMTab('INFO'); setDet(null); setMTbl([]); setH2h([]);
@@ -91,7 +91,7 @@ export default function App() {
       <main className="grid-3">
         <aside>
           <div className="box"><div className="sec-lbl">LIVE</div>{[{ id: 'ALL', l: t.all }, { id: 'LV', l: `🔴 ${t.lv}` }, { id: 'UP', l: t.up }, { id: 'FN', l: t.fn }, { id: 'FAV', l: `★ ${t.fav} (${favs.length})` }].map(b => <button key={b.id} className={`nav-item ${st === b.id ? 'act' : ''}`} onClick={() => setSt(b.id)}>{b.l}</button>)}</div>
-          <div className="box"><div className="sec-lbl">POPULAR COMPETITIONS</div>{POPULAR.map(p => <button key={p.code} className={`nav-item ${lg === p.code ? 'act' : ''}`} onClick={() => { setLg(p.code); setSideLg(p.code); }}><span style={{ display: 'inline-flex', alignItems: 'center', justifyContent: 'center', width: 24, height: 24, borderRadius: 6, background: p.bg, color: p.fg, fontSize: 9, fontWeight: 800, flexShrink: 0 }}>{p.tag}</span><span>{p.name}</span></button>)}</div>
+          <div className="box"><div className="sec-lbl">POPULAR COMPETITIONS</div>{POPULAR.map(p => <button key={p.code} className={`nav-item ${lg === p.code ? 'act' : ''}`} onClick={() => { setLg(p.code); setSideLg(p.code); }}><CompLogo p={p} /><span>{p.name}</span></button>)}</div>
         </aside>
         <section>
           <div className="sec-lbl" style={{ paddingLeft: 4 }}>MATCHES ({list.length})</div>
