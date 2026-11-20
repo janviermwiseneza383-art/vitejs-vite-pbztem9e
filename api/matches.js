@@ -1,15 +1,28 @@
-const RWANDA_LEAGUE = { id: 9999, name: 'Rwanda Premier League', code: 'RW1' };
-const UEL_LEAGUE = { id: 9998, name: 'UEFA Europa League', code: 'UEL' };
+const h = (u) => ['https', '//' + u].join(':');
+
+const RWANDA_LEAGUE = {
+  id: 9999,
+  name: 'Rwanda Premier League',
+  code: 'RW1',
+  emblem: h('upload.wikimedia.org/wikipedia/en/thumb/3/36/Rwanda_Premier_League_logo.png/200px-Rwanda_Premier_League_logo.png'),
+};
+
+const UEL_LEAGUE = {
+  id: 9998,
+  name: 'UEFA Europa League',
+  code: 'UEL',
+  emblem: h('upload.wikimedia.org/wikipedia/en/thumb/0/03/Europa_League_2021.svg/200px-Europa_League_2021.svg.png'),
+};
 
 const RW_TEAMS = {
-  apr: { id: 901, name: 'APR FC', shortName: 'APR FC' },
-  ray: { id: 902, name: 'Rayon Sports FC', shortName: 'Rayon Sports' },
-  pol: { id: 903, name: 'Police FC Rwanda', shortName: 'Police FC' },
-  muk: { id: 904, name: 'Mukura VS', shortName: 'Mukura VS' },
-  kiy: { id: 905, name: 'SC Kiyovu', shortName: 'Kiyovu Sports' },
-  ask: { id: 906, name: 'AS Kigali', shortName: 'AS Kigali' },
-  gas: { id: 907, name: 'Gasogi United', shortName: 'Gasogi Utd' },
-  eti: { id: 908, name: 'Etincelles FC', shortName: 'Etincelles' },
+  apr: { id: 901, name: 'APR FC', shortName: 'APR FC', crest: h('upload.wikimedia.org/wikipedia/en/thumb/8/87/APR_FC_logo.png/150px-APR_FC_logo.png') },
+  ray: { id: 902, name: 'Rayon Sports FC', shortName: 'Rayon Sports', crest: h('upload.wikimedia.org/wikipedia/en/thumb/2/26/Rayon_Sports_FC_logo.png/150px-Rayon_Sports_FC_logo.png') },
+  pol: { id: 903, name: 'Police FC Rwanda', shortName: 'Police FC', crest: h('upload.wikimedia.org/wikipedia/en/thumb/a/a2/Police_FC_%28Rwanda%29_logo.png/150px-Police_FC_%28Rwanda%29_logo.png') },
+  muk: { id: 904, name: 'Mukura VS', shortName: 'Mukura VS', crest: h('upload.wikimedia.org/wikipedia/en/thumb/f/f6/Mukura_Victory_Sports_FC_logo.png/150px-Mukura_Victory_Sports_FC_logo.png') },
+  kiy: { id: 905, name: 'SC Kiyovu', shortName: 'Kiyovu Sports', crest: h('upload.wikimedia.org/wikipedia/en/thumb/5/59/SC_Kiyovu_Sports_logo.png/150px-SC_Kiyovu_Sports_logo.png') },
+  ask: { id: 906, name: 'AS Kigali', shortName: 'AS Kigali', crest: h('upload.wikimedia.org/wikipedia/en/thumb/c/c8/AS_Kigali_logo.png/150px-AS_Kigali_logo.png') },
+  gas: { id: 907, name: 'Gasogi United', shortName: 'Gasogi Utd', crest: h('upload.wikimedia.org/wikipedia/en/thumb/0/05/Gasogi_United_FC_logo.png/150px-Gasogi_United_FC_logo.png') },
+  eti: { id: 908, name: 'Etincelles FC', shortName: 'Etincelles', crest: h('upload.wikimedia.org/wikipedia/en/thumb/3/39/Etincelles_FC_logo.png/150px-Etincelles_FC_logo.png') },
 };
 
 const RWANDA_TABLE = [
@@ -35,14 +48,13 @@ function getRwandaMatches() {
 }
 
 function getUelData() {
-  const base = ['https', '//crests.football-data.org/'].join(':');
   const teams = [
-    { id: 66, name: 'Manchester United', shortName: 'Man United', crest: `${base}66.png` },
-    { id: 73, name: 'Tottenham Hotspur', shortName: 'Tottenham', crest: `${base}73.png` },
-    { id: 100, name: 'AS Roma', shortName: 'Roma', crest: `${base}100.png` },
-    { id: 77, name: 'Athletic Club', shortName: 'Athletic', crest: `${base}77.png` },
-    { id: 19, name: 'Eintracht Frankfurt', shortName: 'Frankfurt', crest: `${base}19.png` },
-    { id: 110, name: 'SS Lazio', shortName: 'Lazio', crest: `${base}110.png` },
+    { id: 66, name: 'Manchester United', shortName: 'Man United', crest: h('crests.football-data.org/66.png') },
+    { id: 73, name: 'Tottenham Hotspur', shortName: 'Tottenham', crest: h('crests.football-data.org/73.png') },
+    { id: 100, name: 'AS Roma', shortName: 'Roma', crest: h('crests.football-data.org/100.png') },
+    { id: 77, name: 'Athletic Club', shortName: 'Athletic', crest: h('crests.football-data.org/77.png') },
+    { id: 19, name: 'Eintracht Frankfurt', shortName: 'Frankfurt', crest: h('crests.football-data.org/19.png') },
+    { id: 110, name: 'SS Lazio', shortName: 'Lazio', crest: h('crests.football-data.org/110.png') },
   ];
   const d = new Date(Date.now() + 6 * 86400000).toISOString().slice(0, 10);
   return {
@@ -72,15 +84,15 @@ export default async function handler(req, res) {
     }
 
     let apiUrl = '';
-    if (type === 'comp_matches' && code) apiUrl = `https://${host}/v4/competitions/${code}/matches`;
-    else if (type === 'standings' && code) apiUrl = `https://${host}/v4/competitions/${code}/standings`;
-    else if (type === 'h2h' && id) apiUrl = `https://${host}/v4/matches/${id}/head2head?limit=6`;
-    else if (type === 'detail' && id) apiUrl = `https://${host}/v4/matches/${id}`;
+    if (type === 'comp_matches' && code) apiUrl = h(`${host}/v4/competitions/${code}/matches`);
+    else if (type === 'standings' && code) apiUrl = h(`${host}/v4/competitions/${code}/standings`);
+    else if (type === 'h2h' && id) apiUrl = h(`${host}/v4/matches/${id}/head2head?limit=6`);
+    else if (type === 'detail' && id) apiUrl = h(`${host}/v4/matches/${id}`);
     else {
       const now = new Date();
       const dateFrom = new Date(now.getTime() - 2 * 86400000).toISOString().slice(0, 10);
       const dateTo = new Date(now.getTime() + 8 * 86400000).toISOString().slice(0, 10);
-      apiUrl = `https://${host}/v4/matches?dateFrom=${dateFrom}&dateTo=${dateTo}`;
+      apiUrl = h(`${host}/v4/matches?dateFrom=${dateFrom}&dateTo=${dateTo}`);
     }
 
     const response = await fetch(apiUrl, { headers: { 'X-Auth-Token': 'dcc25e0d94964ac1a382090daf4dbc55' } });
