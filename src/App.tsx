@@ -2,8 +2,8 @@ import { useState, useEffect } from 'react';
 
 type Lang = 'KINY' | 'ENG' | 'FRA';
 const TXT: Record<Lang, any> = {
-  KINY: { all: 'All', lv: 'Live', up: 'Upcoming', fn: 'Finished', fav: 'Favourites', s: 'Shakisha ikipe...', inf: 'Info', lnp: 'Line-ups', tbl: 'Table', h2h: 'H2H', sum: 'Summary', dev: 'Yakozwe na Janvier Mwiseneza' },
-  ENG: { all: 'All', lv: 'Live', up: 'Upcoming', fn: 'Finished', fav: 'Favourites', s: 'Search teams...', inf: 'Info', lnp: 'Line-ups', tbl: 'Table', h2h: 'H2H', sum: 'Summary', dev: 'Designed by Janvier Mwiseneza' },
+  KINY: { all: 'All', lv: 'Live', up: 'Upcoming', fn: 'Finished', fav: 'Favourites', s: 'Shakisha...', inf: 'Info', lnp: 'Line-ups', tbl: 'Table', h2h: 'H2H', sum: 'Summary', dev: 'Yakozwe na Janvier Mwiseneza' },
+  ENG: { all: 'All', lv: 'Live', up: 'Upcoming', fn: 'Finished', fav: 'Favourites', s: 'Search...', inf: 'Info', lnp: 'Line-ups', tbl: 'Table', h2h: 'H2H', sum: 'Summary', dev: 'Designed by Janvier Mwiseneza' },
   FRA: { all: 'Tous', lv: 'Direct', up: 'À Venir', fn: 'Terminés', fav: 'Favoris', s: 'Rechercher...', inf: 'Infos', lnp: 'Compos', tbl: 'Classement', h2h: 'H2H', sum: 'Résumé', dev: 'Conçu par Janvier Mwiseneza' },
 };
 
@@ -22,8 +22,8 @@ const fallback = (n = 'FC') => `data:image/svg+xml;utf8,${encodeURIComponent(`<s
 
 export default function App() {
   const [lang, setLang] = useState<Lang>('ENG');
-  const [matches, setMatches] = useState<any[]>(() => { try { return JSON.parse(localStorage.getItem('kus_v9') || '[]'); } catch { return []; } });
-  const [favs, setFavs] = useState<number[]>(() => { try { return JSON.parse(localStorage.getItem('kus_f9') || '[]'); } catch { return []; } });
+  const [matches, setMatches] = useState<any[]>(() => { try { return JSON.parse(localStorage.getItem('kus_v10') || '[]'); } catch { return []; } });
+  const [favs, setFavs] = useState<number[]>(() => { try { return JSON.parse(localStorage.getItem('kus_f10') || '[]'); } catch { return []; } });
   const [lg, setLg] = useState('ALL');
   const [st, setSt] = useState('ALL');
   const [q, setQ] = useState('');
@@ -38,14 +38,14 @@ export default function App() {
 
   const load = (c = lg) => {
     fetch(c === 'ALL' ? '/api/matches' : `/api/matches?type=comp_matches&code=${c}`).then(r => r.json()).then(d => {
-      if (Array.isArray(d.matches)) { setMatches(d.matches); if (c === 'ALL') localStorage.setItem('kus_v9', JSON.stringify(d.matches)); }
+      if (Array.isArray(d.matches)) { setMatches(d.matches); if (c === 'ALL') localStorage.setItem('kus_v10', JSON.stringify(d.matches)); }
     }).catch(() => {});
   };
 
   useEffect(() => { load(lg); const i = setInterval(() => load(lg), 30000); return () => clearInterval(i); }, [lg]);
   useEffect(() => { fetch(`/api/matches?type=standings&code=${sideLg}`).then(r => r.json()).then(d => setSideTbl((Array.isArray(d?.standings) ? d.standings.at(0)?.table : []) || [])).catch(() => {}); }, [sideLg]);
 
-  const toggleFav = (e: any, id: number) => { e.stopPropagation(); const nx = favs.includes(id) ? favs.filter(x => x !== id) : [...favs, id]; setFavs(nx); localStorage.setItem('kus_f9', JSON.stringify(nx)); };
+  const toggleFav = (e: any, id: number) => { e.stopPropagation(); const nx = favs.includes(id) ? favs.filter(x => x !== id) : [...favs, id]; setFavs(nx); localStorage.setItem('kus_f10', JSON.stringify(nx)); };
 
   const openMatch = async (m: any) => {
     setSel(m); setMTab('INFO'); setDet(null); setMTbl([]); setH2h([]);
@@ -85,11 +85,11 @@ export default function App() {
 
         <section>
           <div className="sec-lbl" style={{ paddingLeft: 4 }}>MATCHES ({list.length})</div>
-          {list.length === 0 ? <div className="box" style={{ textAlign: 'center', color: '#9ca3af', padding: 30 }}>No matches found.</div> : list.map(m => {
+          {list.map(m => {
             const live = ['IN_PLAY', 'PAUSED'].includes(m.status), fin = m.status === 'FINISHED';
             const tmTxt = live ? `${m.minute || 'LIVE'}'` : fin ? 'FT' : new Date(m.utcDate).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
             return (<div key={m.id} className={`m-card ${live ? 'live' : ''}`} onClick={() => openMatch(m)}>
-              <div className="m-top"><span style={{ fontWeight: 700, color: '#d4d4d4' }}>{m.competition?.name}</span><span>{new Date(m.utcDate).toLocaleDateString([], { day: 'numeric', month: 'short', year: 'numeric' })}</span></div>
+              <div className="m-top"><span style={{ fontWeight: 700, color: '#d4d4d4' }}>{m.competition?.name}</span><span>{new Date(m.utcDate).toLocaleDateString([], { day: 'numeric', month: 'short' })}</span></div>
               <div className="m-row">
                 <span className={live ? 'tm-live' : ''} style={{ fontSize: 12, color: live ? '#ff6b00' : '#9ca3af' }}>{tmTxt}</span>
                 <div className="tm h"><span>{m.homeTeam.shortName || m.homeTeam.name}</span><img src={crest(m.homeTeam)} alt="" /></div>
@@ -116,16 +116,3 @@ export default function App() {
           <div className="tm"><img src={crest(sel.awayTeam)} alt="" /><span>{sel.awayTeam.shortName || sel.awayTeam.name}</span></div>
         </div>
         <div className="ls-tabs">{[{ id: 'INFO', l: t.inf }, { id: 'LNP', l: t.lnp }, { id: 'TBL', l: t.tbl }, { id: 'H2H', l: t.h2h }, { id: 'SUM', l: t.sum }].map(k => <button key={k.id} className={mTab === k.id ? 'act' : ''} onClick={() => setMTab(k.id as any)}>{k.l}</button>)}</div>
-                <div className="ls-tabs">{[{ id: 'INFO', l: t.inf }, { id: 'LNP', l: t.lnp }, { id: 'TBL', l: t.tbl }, { id: 'H2H', l: t.h2h }, { id: 'SUM', l: t.sum }].map(k => <button key={k.id} className={mTab === k.id ? 'act' : ''} onClick={() => setMTab(k.id as any)}>{k.l}</button>)}</div>
-        {mTab === 'INFO' && (<div><div className="sec-lbl">MATCH INFO</div><div className="info-strip"><span>📅 {new Date(sel.utcDate).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' })}</span><span>🗣️ {refObj ? `${refObj.name}${refObj.nationality ? ` (${refObj.nationality})` : ''}` : 'Referee TBA'}</span><span>🏟️ {det?.venue || sel.venue || 'Stadium TBA'}</span></div></div>)}
-        {mTab === 'LNP' && (det?.homeTeam?.lineup?.length > 0 ? <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12, fontSize: 13 }}><div><strong>{sel.homeTeam.shortName}</strong>{det.homeTeam.lineup.map((p: any) => <div key={p.id}>#{p.shirtNumber} {p.name}</div>)}</div><div><strong>{sel.awayTeam.shortName}</strong>{det.awayTeam.lineup.map((p: any) => <div key={p.id}>#{p.shirtNumber} {p.name}</div>)}</div></div> : <p style={{ textAlign: 'center', color: '#9ca3af', padding: 20 }}>Line-ups released ~1h before kickoff.</p>)}
-        {mTab === 'TBL' && <table><thead><tr><th>#</th><th style={{ textAlign: 'left' }}>Team</th><th>P</th><th>GD</th><th>PTS</th></tr></thead><tbody>{mTbl.map((r: any) => <tr key={r.position} style={{ background: [sel.homeTeam.id, sel.awayTeam.id].includes(r.team?.id) ? '#262626' : '' }}><td>{r.position}</td><td style={{ textAlign: 'left' }}>{r.team?.shortName || r.team?.name}</td><td>{r.playedGames}</td><td>{r.goalDifference}</td><td style={{ fontWeight: 800 }}>{r.points}</td></tr>)}</tbody></table>}
-        {mTab === 'H2H' && (h2h.length > 0 ? h2h.map((hm: any) => <div key={hm.id} className="ev"><span>{hm.utcDate?.slice(0, 10)}</span><span><strong>{hm.homeTeam?.shortName}</strong> {hm.score?.fullTime?.home ?? '-'} - {hm.score?.fullTime?.away ?? '-'} <strong>{hm.awayTeam?.shortName}</strong></span></div>) : <p style={{ textAlign: 'center', color: '#9ca3af', padding: 20 }}>No previous H2H matches.</p>)}
-        {mTab === 'SUM' && (Array.isArray(det?.goals) && det.goals.length > 0 ? det.goals.map((g: any, i: number) => <div key={i} className="ev"><span>⚽ <strong>{g.scorer?.name}</strong> ({g.team?.name})</span><strong style={{ color: '#ff6b00' }}>{g.minute}'</strong></div>) : <p style={{ textAlign: 'center', color: '#9ca3af', padding: 20 }}>No goals/events yet.</p>)}
-      </div></div>)}
-
-      <footer>© {new Date().getFullYear()} <strong>KIGALI UPDATE SCORE</strong> • {t.dev}</footer>
-    </div>
-  );
-}
-
