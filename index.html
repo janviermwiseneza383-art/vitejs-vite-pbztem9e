@@ -3,63 +3,55 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Kigali Update Score — Live Scores & Results</title>
+    <title>KIGALI UPDATE SCORE — Live Scores & Results</title>
     <link rel="icon" type="image/png" href="/Kigali Update Score Sports Badge.png" />
     <style>
       * { box-sizing: border-box; margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; }
       body { background: #0b0b0b !important; color: #ffffff !important; min-height: 100vh; overflow-x: hidden; }
-      img { max-width: 100%; height: auto; }
-      .brand img { width: 42px !important; height: 42px !important; border-radius: 8px; object-fit: contain; }
-      .m-team img { width: 22px !important; height: 22px !important; object-fit: contain; }
-      .comp-btn img, .m-meta img, table img { width: 16px !important; height: 16px !important; object-fit: contain; }
       .topbar { background: #121212; border-bottom: 1px solid #222; padding: 10px 18px; position: sticky; top: 0; z-index: 30; }
-      .top-in { max-width: 1120px; margin: 0 auto; display: flex; justify-content: space-between; align-items: center; gap: 12px; }
+      .top-in { max-width: 1240px; margin: 0 auto; display: flex; justify-content: space-between; align-items: center; gap: 12px; }
       .brand { display: flex; align-items: center; gap: 10px; cursor: pointer; }
-      .brand-txt h1 { font-size: 17px; font-weight: 800; color: #fff; }
-      .brand-txt span { font-size: 11px; color: #ff6b00; font-weight: 700; }
-      .top-right { display: flex; align-items: center; gap: 10px; }
-      .fav-pill { background: #1e1e1e; border: 1px solid #2e2e2e; color: #facc15; padding: 6px 12px; border-radius: 99px; font-size: 12px; font-weight: 700; cursor: pointer; }
-      .fav-pill.act { background: #facc15; color: #0b0b0b; }
+      .brand img { width: 40px !important; height: 40px !important; border-radius: 8px; object-fit: contain; }
+      .brand h1 { font-size: 16px; font-weight: 800; letter-spacing: 0.4px; color: #fff; }
       .langs { display: flex; background: #1a1a1a; padding: 3px; border-radius: 8px; border: 1px solid #2a2a2a; }
       .langs button { background: none; border: none; color: #9ca3af; padding: 4px 9px; border-radius: 6px; font-size: 11px; font-weight: 700; cursor: pointer; }
-      .langs button.act { background: #ffffff; color: #0b0b0b; }
-      .sports-bar { background: #121212; border-bottom: 1px solid #222; padding: 10px 18px; overflow-x: auto; }
-      .sports-in { max-width: 1120px; margin: 0 auto; display: flex; gap: 10px; }
-      .sport-btn { background: #1e1e1e; color: #d1d5db; border: none; padding: 7px 16px; border-radius: 99px; font-size: 13px; font-weight: 700; cursor: pointer; white-space: nowrap; }
-      .sport-btn.act { background: #ffffff; color: #0b0b0b; }
-      .layout { max-width: 1120px; margin: 18px auto; padding: 0 16px; display: grid; grid-template-columns: 1fr 310px; gap: 20px; }
-      @media (max-width: 860px) { .layout { grid-template-columns: 1fr; } }
-      .filter-card, .sidebar-box { background: #141414; border: 1px solid #242424; border-radius: 12px; padding: 12px; margin-bottom: 14px; }
-      .status-row { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 10px; }
-      .st-btn { background: #222; color: #a3a3a3; border: none; padding: 5px 12px; border-radius: 6px; font-size: 12px; font-weight: 700; cursor: pointer; }
-      .st-btn.act { background: #ff6b00; color: #fff; }
-      .comp-row { display: flex; gap: 8px; overflow-x: auto; padding-bottom: 4px; }
-      .comp-btn { display: flex; align-items: center; gap: 6px; background: #1e1e1e; color: #d4d4d4; border: 1px solid #2e2e2e; padding: 5px 12px; border-radius: 99px; font-size: 12px; white-space: nowrap; cursor: pointer; }
-      .comp-btn.act { background: #2563eb; color: #fff; }
-      .match-card { position: relative; background: #181818; border: 1px solid #262626; border-radius: 10px; padding: 12px 14px; margin-bottom: 8px; cursor: pointer; overflow: hidden; }
-      .match-card.is-live::before { content: ''; position: absolute; left: 0; top: 0; bottom: 0; width: 4px; background: #ff6b00; }
-      .m-meta { display: flex; justify-content: space-between; font-size: 11px; color: #9ca3af; margin-bottom: 8px; }
-      .m-grid { display: grid; grid-template-columns: 60px 1fr auto 1fr 30px; align-items: center; gap: 10px; }
-      .m-time { font-size: 12px; font-weight: 700; color: #9ca3af; }
-      .m-time.live, .m-score.live { color: #ff6b00; }
-      .m-team { display: flex; align-items: center; gap: 8px; font-size: 14px; font-weight: 600; min-width: 0; }
-      .m-team.home { justify-content: flex-end; text-align: right; }
-      .m-score { font-size: 15px; font-weight: 800; padding: 3px 10px; border-radius: 6px; background: #101010; min-width: 58px; text-align: center; }
-      .star-btn { background: none; border: none; font-size: 18px; color: #6b7280; cursor: pointer; text-align: right; }
-      .star-btn.fav { color: #facc15; }
-      .search-inp { width: 100%; background: #1f1f1f; border: 1px solid #333; border-radius: 99px; padding: 10px 16px; color: #fff; font-size: 13px; outline: none; margin-bottom: 12px; }
-      .side-tabs { display: flex; gap: 6px; margin-bottom: 12px; }
-      .side-tabs button { flex: 1; background: #222; color: #ccc; border: none; padding: 7px 6px; border-radius: 8px; font-size: 12px; font-weight: 700; cursor: pointer; }
-      .side-tabs button.act { background: #fff; color: #0b0b0b; }
-      .modal-bg { position: fixed; inset: 0; background: rgba(0,0,0,0.85); z-index: 60; display: flex; justify-content: center; align-items: center; padding: 14px; }
-      .modal { background: #161616; border: 1px solid #333; border-radius: 16px; width: 100%; max-width: 640px; max-height: 90vh; overflow-y: auto; padding: 18px; }
-      .ls-tabs { display: flex; border-bottom: 1px solid #2a2a2a; margin: 14px 0; overflow-x: auto; }
-      .ls-tabs button { flex: 1; background: none; border: none; color: #9ca3af; padding: 10px 8px; font-size: 12px; font-weight: 700; cursor: pointer; border-bottom: 2px solid transparent; }
-      .ls-tabs button.act { color: #fff; border-bottom-color: #ff6b00; }
+      .langs button.act { background: #fff; color: #0b0b0b; }
+
+      .grid-3 { max-width: 1240px; margin: 18px auto; padding: 0 16px; display: grid; grid-template-columns: 240px 1fr 290px; gap: 18px; align-items: start; }
+      @media (max-width: 980px) { .grid-3 { grid-template-columns: 1fr; } }
+
+      .box { background: #141414; border: 1px solid #242424; border-radius: 12px; padding: 14px; margin-bottom: 14px; }
+      .sec-lbl { font-size: 11px; font-weight: 800; color: #737373; letter-spacing: 0.8px; text-transform: uppercase; margin-bottom: 10px; }
+      .nav-item { display: flex; align-items: center; gap: 10px; width: 100%; background: none; border: none; color: #d4d4d4; padding: 8px 10px; border-radius: 8px; font-size: 13px; font-weight: 600; cursor: pointer; text-align: left; }
+      .nav-item:hover { background: #1f1f1f; }
+      .nav-item.act { background: #262626; color: #fff; font-weight: 700; border-left: 3px solid #ff6b00; }
+      .nav-item img { width: 18px !important; height: 18px !important; object-fit: contain; flex-shrink: 0; }
+
+      .m-card { position: relative; background: #181818; border: 1px solid #262626; border-radius: 10px; padding: 12px 14px; margin-bottom: 8px; cursor: pointer; overflow: hidden; }
+      .m-card:hover { background: #202020; border-color: #3f3f46; }
+      .m-card.live::before { content: ''; position: absolute; left: 0; top: 0; bottom: 0; width: 4px; background: #ff6b00; }
+      .m-top { display: flex; justify-content: space-between; font-size: 11px; color: #9ca3af; margin-bottom: 8px; }
+      .m-row { display: grid; grid-template-columns: 56px 1fr auto 1fr 28px; align-items: center; gap: 10px; }
+      .tm { display: flex; align-items: center; gap: 8px; font-size: 14px; font-weight: 600; min-width: 0; }
+      .tm.h { justify-content: flex-end; text-align: right; }
+      .tm span { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+      .tm img { width: 22px !important; height: 22px !important; object-fit: contain; flex-shrink: 0; }
+      .sc { background: #101010; padding: 4px 10px; border-radius: 6px; font-weight: 800; font-size: 14px; min-width: 56px; text-align: center; }
+      .sc.live, .tm-live { color: #ff6b00; font-weight: 700; }
+      .star { background: none; border: none; font-size: 17px; color: #6b7280; cursor: pointer; }
+      .star.fav { color: #facc15; }
+
+      .search { width: 100%; background: #1f1f1f; border: 1px solid #333; border-radius: 99px; padding: 9px 14px; color: #fff; font-size: 13px; outline: none; margin-bottom: 12px; }
       table { width: 100%; border-collapse: collapse; font-size: 12px; text-align: center; }
-      th, td { padding: 8px 5px; border-bottom: 1px solid #242424; }
-      .ev-row { display: flex; justify-content: space-between; background: #1f1f1f; padding: 8px 12px; border-radius: 8px; margin-bottom: 6px; font-size: 13px; }
-      footer { text-align: center; padding: 20px; color: #737373; font-size: 12px; border-top: 1px solid #1f1f1f; margin-top: 30px; }
+      th, td { padding: 8px 4px; border-bottom: 1px solid #242424; }
+      .modal-bg { position: fixed; inset: 0; background: rgba(0,0,0,0.86); z-index: 60; display: flex; justify-content: center; align-items: center; padding: 14px; }
+      .modal { background: #161616; border: 1px solid #333; border-radius: 16px; width: 100%; max-width: 640px; max-height: 90vh; overflow-y: auto; padding: 20px; }
+      .ls-tabs { display: flex; border-bottom: 1px solid #2a2a2a; margin: 16px 0; }
+      .ls-tabs button { flex: 1; background: none; border: none; color: #9ca3af; padding: 10px; font-size: 13px; font-weight: 700; cursor: pointer; border-bottom: 2px solid transparent; }
+      .ls-tabs button.act { color: #fff; border-bottom-color: #fff; }
+      .info-strip { display: flex; justify-content: space-around; flex-wrap: wrap; gap: 14px; background: #121212; border: 1px solid #2a2a2a; border-radius: 10px; padding: 14px; font-size: 13px; color: #e5e7eb; }
+      .ev { display: flex; justify-content: space-between; background: #1f1f1f; padding: 8px 12px; border-radius: 8px; margin-bottom: 6px; font-size: 13px; }
+      footer { text-align: center; padding: 18px; color: #737373; font-size: 12px; border-top: 1px solid #1f1f1f; margin-top: 20px; }
     </style>
   </head>
   <body>
