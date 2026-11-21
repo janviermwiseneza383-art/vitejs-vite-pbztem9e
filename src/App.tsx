@@ -46,12 +46,13 @@ const Crest = ({ tm }: { tm: any }) => {
 export default function App() {
   const [lang, setLang] = useState<Lang>('ENG');
   const [isAdmin, setIsAdmin] = useState(false);
-  const [customMatches, setCustomMatches] = useState<any[]>(() => { try { return JSON.parse(localStorage.getItem('kus_custom') || '[]'); } catch { return []; } });
-  const [adBanner, setAdBanner] = useState(() => localStorage.getItem('kus_ad') || '📢 Advertise Here on Kigali Update Score • Contact Janvier Mwiseneza');
-  const [form, setForm] = useState({ home: 'TTC Muhanga', away: 'TTC Kigali', hs: '2', as: '1', comp: 'TTC Schools Championship', venue: 'Muhanga Pitch', status: 'FINISHED' });
+  const [customMatches, setCustomMatches] = useState<any[]>(() => { try { return JSON.parse(localStorage.getItem('kus_custom2') || '[]'); } catch { return []; } });
+  const [adBanner, setAdBanner] = useState(() => localStorage.getItem('kus_ad2') || '📢 Advertise Here on Kigali Update Score • Pay via MTN MoMo: 078XXXXXXX (Janvier Mwiseneza)');
+  const [momoNum, setMomoNum] = useState(() => localStorage.getItem('kus_momo') || '078XXXXXXX');
+  const [form, setForm] = useState({ home: 'TTC Muhanga', away: 'G.S Shyogwe', hs: '2', as: '1', comp: 'TTC Schools Championship', venue: 'Muhanga Pitch', date: new Date().toISOString().slice(0, 16), status: 'TIMED', min: '90', added: '4', penH: '', penA: '' });
 
-  const [matches, setMatches] = useState<any[]>(() => { try { return JSON.parse(localStorage.getItem('kus_v21') || '[]'); } catch { return []; } });
-  const [favs, setFavs] = useState<number[]>(() => { try { return JSON.parse(localStorage.getItem('kus_f21') || '[]'); } catch { return []; } });
+  const [matches, setMatches] = useState<any[]>(() => { try { return JSON.parse(localStorage.getItem('kus_v22') || '[]'); } catch { return []; } });
+  const [favs, setFavs] = useState<number[]>(() => { try { return JSON.parse(localStorage.getItem('kus_f22') || '[]'); } catch { return []; } });
   const [lg, setLg] = useState('ALL');
   const [st, setSt] = useState('ALL');
   const [q, setQ] = useState('');
@@ -67,7 +68,7 @@ export default function App() {
     const load = (c = lg) => {
     if (c === 'SCHOOL') { setMatches(customMatches); return; }
     fetch(c === 'ALL' ? '/api/matches' : `/api/matches?type=comp_matches&code=${c}`).then(r => r.json()).then(d => {
-      if (Array.isArray(d.matches)) { setMatches(d.matches); if (c === 'ALL') localStorage.setItem('kus_v21', JSON.stringify(d.matches)); }
+      if (Array.isArray(d.matches)) { setMatches(d.matches); if (c === 'ALL') localStorage.setItem('kus_v22', JSON.stringify(d.matches)); }
     }).catch(() => {});
   };
 
@@ -83,26 +84,27 @@ export default function App() {
 
   const addCustomMatch = (e: any) => {
     e.preventDefault();
+    const hasPen = form.penH !== '' && form.penA !== '';
     const item = {
       id: Date.now(), competition: { name: form.comp, code: 'SCHOOL' }, status: form.status,
-      utcDate: new Date().toISOString(), venue: form.venue,
+      minute: form.min, injuryTime: form.added ? Number(form.added) : null,
+      utcDate: form.date ? new Date(form.date).toISOString() : new Date().toISOString(), venue: form.venue,
       homeTeam: { id: Date.now() + 1, name: form.home, shortName: form.home },
       awayTeam: { id: Date.now() + 2, name: form.away, shortName: form.away },
-      score: { fullTime: { home: form.status === 'TIMED' ? null : Number(form.hs), away: form.status === 'TIMED' ? null : Number(form.as) } },
+      score: {
+        duration: hasPen ? 'PENALTY_SHOOTOUT' : 'REGULAR',
+        fullTime: { home: form.status === 'TIMED' ? null : Number(form.hs), away: form.status === 'TIMED' ? null : Number(form.as) },
+        penalties: hasPen ? { home: Number(form.penH), away: Number(form.penA) } : null,
+      },
     };
     const next = [item, ...customMatches];
     setCustomMatches(next);
-    localStorage.setItem('kus_custom', JSON.stringify(next));
-    alert('✅ Match added to Kigali Update Score!');
+    localStorage.setItem('kus_custom2', JSON.stringify(next));
+    alert('✅ Match saved with date, time, added time & penalties!');
   };
 
-  const delCustomMatch = (id: number) => {
-    const next = customMatches.filter(x => x.id !== id);
-    setCustomMatches(next);
-    localStorage.setItem('kus_custom', JSON.stringify(next));
-  };
-
-  const toggleFav = (e: any, id: number) => { e.stopPropagation(); const nx = favs.includes(id) ? favs.filter(x => x !== id) : [...favs, id]; setFavs(nx); localStorage.setItem('kus_f21', JSON.stringify(nx)); };
+  const delCustomMatch = (id: number) => { const next = customMatches.filter(x => x.id !== id); setCustomMatches(next); localStorage.setItem('kus_custom2', JSON.stringify(next)); };
+  const toggleFav = (e: any, id: number) => { e.stopPropagation(); const nx = favs.includes(id) ? favs.filter(x => x !== id) : [...favs, id]; setFavs(nx); localStorage.setItem('kus_f22', JSON.stringify(nx)); };
 
   const openMatch = async (m: any) => {
     setSel(m); setMTab('INFO'); setDet(null); setMTbl([]); setH2h([]);
@@ -126,6 +128,14 @@ export default function App() {
     return true;
   });
 
+  const formatStatus = (m: any) => {
+    const live = ['IN_PLAY', 'PAUSED'].includes(m.status);
+    const hasPen = m.score?.duration === 'PENALTY_SHOOTOUT' || (m.score?.penalties && m.score.penalties.home !== null);
+    if (live) return `${m.minute || 'LIVE'}${m.injuryTime ? `+${m.injuryTime}` : ''}'`;
+    if (m.status === 'FINISHED') return hasPen ? 'PEN' : 'FT';
+    return new Date(m.utcDate).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+  };
+
   const refObj = Array.isArray(det?.referees) ? det.referees.at(0) : null;
   const goals = Array.isArray(det?.goals) ? det.goals : [];
 
@@ -141,40 +151,35 @@ export default function App() {
 
       {isAdmin ? (
         <main className="adm-wrap">
-          <div className="stat-grid">
-            <div className="stat-card" style={{ background: 'linear-gradient(135deg,#1d4ed8,#3b82f6)' }}><div style={{ fontSize: 24 }}>{allShown.length}</div><div>Total Active Matches</div></div>
-            <div className="stat-card" style={{ background: 'linear-gradient(135deg,#059669,#10b981)' }}><div style={{ fontSize: 24 }}>{customMatches.length}</div><div>Custom / School Matches</div></div>
-            <div className="stat-card" style={{ background: 'linear-gradient(135deg,#7c3aed,#a855f7)' }}><div style={{ fontSize: 24 }}>11</div><div>Leagues Covered</div></div>
-            <div className="stat-card" style={{ background: 'linear-gradient(135deg,#d97706,#f59e0b)' }}><div style={{ fontSize: 24 }}>Active</div><div>AdSense / Sponsor Slot</div></div>
-          </div>
-
           <div className="box">
-            <div className="sec-lbl">+ ADD NEW MATCH (SCHOOL / LOCAL / CUSTOM)</div>
+            <div className="sec-lbl">+ ADD NEW MATCH (DATE, TIME, ADDED TIME & PENALTIES)</div>
             <form onSubmit={addCustomMatch}>
               <div className="form-grid">
                 <input className="inp" value={form.home} onChange={e => setForm({ ...form, home: e.target.value })} placeholder="Home Team (e.g. TTC Muhanga)" required />
-                <input className="inp" value={form.away} onChange={e => setForm({ ...form, away: e.target.value })} placeholder="Away Team (e.g. TTC Kigali)" required />
-                <input className="inp" value={form.comp} onChange={e => setForm({ ...form, comp: e.target.value })} placeholder="Competition (e.g. TTC Championship)" required />
-                <input className="inp" value={form.venue} onChange={e => setForm({ ...form, venue: e.target.value })} placeholder="Venue / Stadium" />
-                <input className="inp" type="number" value={form.hs} onChange={e => setForm({ ...form, hs: e.target.value })} placeholder="Home Score" />
-                <input className="inp" type="number" value={form.as} onChange={e => setForm({ ...form, as: e.target.value })} placeholder="Away Score" />
-                <select className="inp" value={form.status} onChange={e => setForm({ ...form, status: e.target.value })}><option value="FINISHED">Finished (FT)</option><option value="IN_PLAY">Live Now</option><option value="TIMED">Upcoming</option></select>
+                <input className="inp" value={form.away} onChange={e => setForm({ ...form, away: e.target.value })} placeholder="Away Team (e.g. G.S Shyogwe)" required />
+                <input className="inp" value={form.comp} onChange={e => setForm({ ...form, comp: e.target.value })} placeholder="Competition" required />
+                <input className="inp" type="datetime-local" value={form.date} onChange={e => setForm({ ...form, date: e.target.value })} required />
+                <input className="inp" value={form.venue} onChange={e => setForm({ ...form, venue: e.target.value })} placeholder="Stadium / Pitch" />
+                <select className="inp" value={form.status} onChange={e => setForm({ ...form, status: e.target.value })}><option value="TIMED">Upcoming (Scheduled)</option><option value="IN_PLAY">Live Now</option><option value="FINISHED">Finished (FT / PEN)</option></select>
+                <input className="inp" type="number" value={form.hs} onChange={e => setForm({ ...form, hs: e.target.value })} placeholder="Home Goals" />
+                <input className="inp" type="number" value={form.as} onChange={e => setForm({ ...form, as: e.target.value })} placeholder="Away Goals" />
+                <input className="inp" type="number" value={form.min} onChange={e => setForm({ ...form, min: e.target.value })} placeholder="Minute (e.g. 90)" />
+                <input className="inp" type="number" value={form.added} onChange={e => setForm({ ...form, added: e.target.value })} placeholder="Added Time (+4)" />
+                <input className="inp" type="number" value={form.penH} onChange={e => setForm({ ...form, penH: e.target.value })} placeholder="Home Penalties (optional)" />
+                <input className="inp" type="number" value={form.penA} onChange={e => setForm({ ...form, penA: e.target.value })} placeholder="Away Penalties (optional)" />
               </div>
               <button type="submit" className="btn-pri">💾 Save Match to Website</button>
             </form>
           </div>
-
           <div className="box">
             <div className="sec-lbl">MANAGE ADDED MATCHES ({customMatches.length})</div>
-            {customMatches.length === 0 ? <p style={{ color: '#9ca3af', fontSize: 13 }}>No custom matches added yet.</p> : customMatches.map(cm => (
-              <div key={cm.id} className="ev"><span><strong>{cm.homeTeam.name}</strong> {cm.score.fullTime.home ?? '-'} - {cm.score.fullTime.away ?? '-'} <strong>{cm.awayTeam.name}</strong> ({cm.competition.name})</span><button className="btn-del" onClick={() => delCustomMatch(cm.id)}>Delete</button></div>
-            ))}
+            {customMatches.map(cm => <div key={cm.id} className="ev"><span><strong>{cm.homeTeam.name}</strong> {cm.score.fullTime.home ?? '-'} - {cm.score.fullTime.away ?? '-'} <strong>{cm.awayTeam.name}</strong> ({new Date(cm.utcDate).toLocaleString([], { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' })})</span><button className="btn-del" onClick={() => delCustomMatch(cm.id)}>Delete</button></div>)}
           </div>
-
           <div className="box">
-            <div className="sec-lbl">💰 MONETIZATION & ADS BANNER (DATA / WI-FI REVENUE)</div>
-            <input className="inp" value={adBanner} onChange={e => { setAdBanner(e.target.value); localStorage.setItem('kus_ad', e.target.value); }} placeholder="Enter Sponsor Text or AdSense Tag..." />
-            <p style={{ fontSize: 12, color: '#9ca3af' }}>Tip: Connect Google AdSense or Adsterra script in index.html to earn automatically from every visitor using Mobile Data or Wi-Fi.</p>
+            <div className="sec-lbl">💰 DIRECT MOMO SPONSORSHIP & ADS (INSTANT EARNINGS)</div>
+            <input className="inp" value={momoNum} onChange={e => { setMomoNum(e.target.value); localStorage.setItem('kus_momo', e.target.value); setAdBanner(`📢 Advertise on Kigali Update Score • Instant Booking via MTN MoMo: ${e.target.value}`); localStorage.setItem('kus_ad2', `📢 Advertise on Kigali Update Score • Instant Booking via MTN MoMo: ${e.target.value}`); }} placeholder="Your MTN MoMo / Airtel Money Number (e.g. 0788...)" />
+            <input className="inp" value={adBanner} onChange={e => { setAdBanner(e.target.value); localStorage.setItem('kus_ad2', e.target.value); }} placeholder="Custom Sponsor Banner Text..." />
+            <p style={{ fontSize: 12, color: '#9ca3af' }}>1) Businesses pay directly to your MoMo number above to display their ad here. 2) For automatic Data/Wi-Fi traffic revenue, sign up free at Adsterra.com or Google AdSense.</p>
           </div>
         </main>
       ) : (
@@ -186,37 +191,5 @@ export default function App() {
           <section>
             <div className="ad-box">{adBanner}</div>
             <div className="sec-lbl" style={{ paddingLeft: 4 }}>MATCHES ({list.length})</div>
-           
-                      {list.map(m => {
-              const live = ['IN_PLAY', 'PAUSED'].includes(m.status), fin = m.status === 'FINISHED';
-              return (<div key={m.id} className={`m-card ${live ? 'live' : ''}`} onClick={() => openMatch(m)}>
-                <div className="m-top"><span style={{ fontWeight: 700, color: '#d4d4d4' }}>{m.competition?.name}</span><span>{new Date(m.utcDate).toLocaleDateString([], { day: 'numeric', month: 'short' })}</span></div>
-                <div className="m-row">
-                  <span className={live ? 'tm-live' : ''} style={{ fontSize: 12, color: live ? '#ff6b00' : '#9ca3af' }}>{live ? `${m.minute || 'LIVE'}'` : fin ? 'FT' : new Date(m.utcDate).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</span>
-                  <div className="tm h"><span>{m.homeTeam.shortName || m.homeTeam.name}</span><Crest tm={m.homeTeam} /></div>
-                  <div className={`sc ${live ? 'live' : ''}`}>{m.score.fullTime.home ?? '-'} - {m.score.fullTime.away ?? '-'}</div>
-                  <div className="tm"><Crest tm={m.awayTeam} /><span>{m.awayTeam.shortName || m.awayTeam.name}</span></div>
-                  <button className={`star ${favs.includes(m.id) ? 'fav' : ''}`} onClick={e => toggleFav(e, m.id)}>{favs.includes(m.id) ? '★' : '☆'}</button>
-                </div>
-              </div>);
-            })}
-          </section>
-          <aside><div className="box"><input className="search" value={q} onChange={e => setQ(e.target.value)} placeholder={`🔍 ${t.s}`} /><select value={sideLg} onChange={e => setSideLg(e.target.value)} style={{ width: '100%', background: '#1f1f1f', color: '#fff', border: '1px solid #333', padding: '7px 10px', borderRadius: 8, marginBottom: 10, fontSize: 12 }}>{POPULAR.filter(p => p.code !== 'SCHOOL').map(p => <option key={p.code} value={p.code}>{p.name}</option>)}</select><table><thead><tr><th>#</th><th style={{ textAlign: 'left' }}>Team</th><th>P</th><th>GD</th><th>PTS</th></tr></thead><tbody>{sideTbl.slice(0, 12).map((r: any) => <tr key={r.position}><td>{r.position}</td><td style={{ textAlign: 'left', fontWeight: 600 }}>{r.team?.shortName || r.team?.name}</td><td>{r.playedGames}</td><td>{r.goalDifference}</td><td style={{ fontWeight: 800, color: '#ff6b00' }}>{r.points}</td></tr>)}</tbody></table></div></aside>
-        </main>
-      )}
-      {sel && (<div className="modal-bg" onClick={() => setSel(null)}><div className="modal" onClick={e => e.stopPropagation()}>
-        <div className="m-top"><strong>{sel.competition?.name}</strong><button onClick={() => setSel(null)} style={{ background: 'none', border: 'none', color: '#fff', fontSize: 18, cursor: 'pointer' }}>✕</button></div>
-        <div className="m-row" style={{ background: '#0b0b0b', padding: 14, borderRadius: 12, gridTemplateColumns: '1fr auto 1fr' }}><div className="tm h"><span>{sel.homeTeam.shortName || sel.homeTeam.name}</span><Crest tm={sel.homeTeam} /></div><div className="sc" style={{ fontSize: 20 }}>{sel.score.fullTime.home ?? '-'} - {sel.score.fullTime.away ?? '-'}</div><div className="tm"><Crest tm={sel.awayTeam} /><span>{sel.awayTeam.shortName || sel.awayTeam.name}</span></div></div>
-        <div className="ls-tabs">{[{ id: 'INFO', l: t.inf }, { id: 'SUM', l: t.sum }, { id: 'LNP', l: t.lnp }, { id: 'TBL', l: t.tbl }, { id: 'H2H', l: t.h2h }].map(k => <button key={k.id} className={mTab === k.id ? 'act' : ''} onClick={() => setMTab(k.id as any)}>{k.l}</button>)}</div>
-        {mTab === 'INFO' && (<div><div className="sec-lbl">MATCH INFO</div><div className="info-strip"><span>📅 {new Date(sel.utcDate).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' })}</span><span>🗣️ {refObj ? `${refObj.name}${refObj.nationality ? ` (${refObj.nationality})` : ''}` : 'Referee TBA'}</span><span>🏟️ {det?.venue || sel.venue || 'Stadium TBA'}</span></div></div>)}
-        {mTab === 'SUM' && (goals.length > 0 ? goals.map((g: any, i: number) => <div key={i} className="ev"><span>⚽ <strong>{g.scorer?.name}</strong> ({g.team?.name})</span><strong style={{ color: '#ff6b00' }}>{g.minute}'</strong></div>) : <div><div className="ev"><span>🏆 <strong>Result:</strong> {sel.homeTeam.shortName} {sel.score.fullTime.home ?? 0} - {sel.score.fullTime.away ?? 0} {sel.awayTeam.shortName}</span><strong style={{ color: '#ff6b00' }}>{sel.status}</strong></div>{refObj && <div className="ev"><span>🗣️ Referee</span><strong>{refObj.name}</strong></div>}</div>)}
-        {mTab === 'LNP' && <p style={{ textAlign: 'center', color: '#9ca3af', padding: 20 }}>Line-ups released ~1h before kickoff.</p>}
-        {mTab === 'TBL' && <table><thead><tr><th>#</th><th style={{ textAlign: 'left' }}>Team</th><th>P</th><th>GD</th><th>PTS</th></tr></thead><tbody>{mTbl.map((r: any) => <tr key={r.position}><td>{r.position}</td><td style={{ textAlign: 'left' }}>{r.team?.shortName || r.team?.name}</td><td>{r.playedGames}</td><td>{r.goalDifference}</td><td style={{ fontWeight: 800 }}>{r.points}</td></tr>)}</tbody></table>}
-        {mTab === 'H2H' && (h2h.length > 0 ? h2h.map((hm: any) => <div key={hm.id} className="ev"><span>{hm.utcDate?.slice(0, 10)}</span><span><strong>{hm.homeTeam?.shortName}</strong> {hm.score?.fullTime?.home ?? '-'} - {hm.score?.fullTime?.away ?? '-'} <strong>{hm.awayTeam?.shortName}</strong></span></div>) : <p style={{ textAlign: 'center', color: '#9ca3af', padding: 20 }}>No previous H2H matches.</p>)}
-      </div></div>)}
-      <footer>© {new Date().getFullYear()} <strong>KIGALI UPDATE SCORE</strong> • {t.dev}</footer>
-    </div>
-  );
-}
-
+            {list.map(m => {
 
