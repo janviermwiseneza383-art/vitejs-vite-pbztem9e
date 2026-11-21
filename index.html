@@ -12,20 +12,20 @@
       .top-in { max-width: 1240px; margin: 0 auto; display: flex; justify-content: space-between; align-items: center; gap: 12px; }
       .brand { display: flex; align-items: center; gap: 10px; cursor: pointer; }
       .brand img { width: 40px !important; height: 40px !important; border-radius: 8px; object-fit: contain; }
-      .brand h1 { font-size: 16px; font-weight: 800; letter-spacing: 0.4px; color: #fff; }
+      .brand h1 { font-size: 16px; font-weight: 800; color: #fff; }
+      .top-acts { display: flex; align-items: center; gap: 8px; }
+      .adm-btn { background: #1e293b; color: #38bdf8; border: 1px solid #334155; padding: 5px 11px; border-radius: 8px; font-size: 11px; font-weight: 700; cursor: pointer; }
       .langs { display: flex; background: #1a1a1a; padding: 3px; border-radius: 8px; border: 1px solid #2a2a2a; }
       .langs button { background: none; border: none; color: #9ca3af; padding: 4px 9px; border-radius: 6px; font-size: 11px; font-weight: 700; cursor: pointer; }
       .langs button.act { background: #fff; color: #0b0b0b; }
 
       .grid-3 { max-width: 1240px; margin: 18px auto; padding: 0 16px; display: grid; grid-template-columns: 240px 1fr 290px; gap: 18px; align-items: start; }
       @media (max-width: 980px) { .grid-3 { grid-template-columns: 1fr; } }
-
       .box { background: #141414; border: 1px solid #242424; border-radius: 12px; padding: 14px; margin-bottom: 14px; }
       .sec-lbl { font-size: 11px; font-weight: 800; color: #737373; letter-spacing: 0.8px; text-transform: uppercase; margin-bottom: 10px; }
       .nav-item { display: flex; align-items: center; gap: 10px; width: 100%; background: none; border: none; color: #d4d4d4; padding: 8px 10px; border-radius: 8px; font-size: 13px; font-weight: 600; cursor: pointer; text-align: left; }
       .nav-item:hover { background: #1f1f1f; }
       .nav-item.act { background: #262626; color: #fff; font-weight: 700; border-left: 3px solid #ff6b00; }
-      .nav-item img { width: 18px !important; height: 18px !important; object-fit: contain; flex-shrink: 0; }
 
       .m-card { position: relative; background: #181818; border: 1px solid #262626; border-radius: 10px; padding: 12px 14px; margin-bottom: 8px; cursor: pointer; overflow: hidden; }
       .m-card:hover { background: #202020; border-color: #3f3f46; }
@@ -41,7 +41,7 @@
       .star { background: none; border: none; font-size: 17px; color: #6b7280; cursor: pointer; }
       .star.fav { color: #facc15; }
 
-      .search { width: 100%; background: #1f1f1f; border: 1px solid #333; border-radius: 99px; padding: 9px 14px; color: #fff; font-size: 13px; outline: none; margin-bottom: 12px; }
+      .search, .inp { width: 100%; background: #1f1f1f; border: 1px solid #333; border-radius: 10px; padding: 9px 12px; color: #fff; font-size: 13px; outline: none; margin-bottom: 10px; }
       table { width: 100%; border-collapse: collapse; font-size: 12px; text-align: center; }
       th, td { padding: 8px 4px; border-bottom: 1px solid #242424; }
       .modal-bg { position: fixed; inset: 0; background: rgba(0,0,0,0.86); z-index: 60; display: flex; justify-content: center; align-items: center; padding: 14px; }
@@ -51,6 +51,15 @@
       .ls-tabs button.act { color: #fff; border-bottom-color: #fff; }
       .info-strip { display: flex; justify-content: space-around; flex-wrap: wrap; gap: 14px; background: #121212; border: 1px solid #2a2a2a; border-radius: 10px; padding: 14px; font-size: 13px; color: #e5e7eb; }
       .ev { display: flex; justify-content: space-between; background: #1f1f1f; padding: 8px 12px; border-radius: 8px; margin-bottom: 6px; font-size: 13px; }
+      .ad-box { background: linear-gradient(135deg, #111827, #0f172a); border: 1px dashed #334155; border-radius: 10px; padding: 12px; text-align: center; margin-bottom: 12px; font-size: 12px; color: #94a3b8; }
+
+      /* Admin Dashboard Styles */
+      .adm-wrap { max-width: 1120px; margin: 20px auto; padding: 0 16px; }
+      .stat-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 14px; margin-bottom: 18px; }
+      .stat-card { border-radius: 14px; padding: 16px; color: #fff; font-weight: 700; }
+      .form-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 10px; }
+      .btn-pri { background: #2563eb; color: #fff; border: none; padding: 10px 18px; border-radius: 10px; font-weight: 700; cursor: pointer; }
+      .btn-del { background: #7f1d1d; color: #fecaca; border: none; padding: 4px 10px; border-radius: 6px; font-size: 11px; cursor: pointer; }
       footer { text-align: center; padding: 18px; color: #737373; font-size: 12px; border-top: 1px solid #1f1f1f; margin-top: 20px; }
     </style>
   </head>
