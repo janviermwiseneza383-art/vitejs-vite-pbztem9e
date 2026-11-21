@@ -25,12 +25,16 @@ const POPULAR = [
 const RW_BADGES: Record<string, { bg: string; fg: string; bd: string; txt: string }> = {
   'APR FC': { bg: 'linear-gradient(135deg,#000 55%,#fff 100%)', fg: '#fff', bd: '#fff', txt: 'APR' },
   'Rayon Sports': { bg: 'linear-gradient(135deg,#1d4ed8 60%,#fff 100%)', fg: '#fff', bd: '#60a5fa', txt: 'RS' },
-  'Police FC': { bg: 'linear-gradient(135deg,#1e3a8a 60%,#facc15 100%)', fg: '#fff', bd: '#facc15', txt: 'POL' },
-  'Mukura VS': { bg: 'linear-gradient(135deg,#eab308 60%,#111 100%)', fg: '#111', bd: '#fde047', txt: 'MVS' },
+  'Police': { bg: 'linear-gradient(135deg,#1e3a8a 60%,#facc15 100%)', fg: '#fff', bd: '#facc15', txt: 'POL' },
+  'Marines': { bg: 'linear-gradient(135deg,#dc2626 60%,#111 100%)', fg: '#fff', bd: '#f87171', txt: 'MAR' },
   'Kiyovu Sports': { bg: 'linear-gradient(135deg,#15803d 60%,#fff 100%)', fg: '#fff', bd: '#4ade80', txt: 'KSC' },
-  'AS Kigali': { bg: 'linear-gradient(135deg,#0284c7 60%,#facc15 100%)', fg: '#fff', bd: '#38bdf8', txt: 'ASK' },
-  'Gasogi Utd': { bg: 'linear-gradient(135deg,#dc2626 60%,#facc15 100%)', fg: '#fff', bd: '#f87171', txt: 'GAS' },
-  'Etincelles': { bg: 'linear-gradient(135deg,#b91c1c 60%,#fff 100%)', fg: '#fff', bd: '#fca5a5', txt: 'ETI' },
+  'Al-Hilal': { bg: 'linear-gradient(135deg,#0284c7 60%,#fff 100%)', fg: '#fff', bd: '#38bdf8', txt: 'HIL' },
+  'Gicumbi': { bg: 'linear-gradient(135deg,#16a34a 60%,#facc15 100%)', fg: '#fff', bd: '#86efac', txt: 'GIC' },
+  'Bugesera': { bg: 'linear-gradient(135deg,#eab308 60%,#111 100%)', fg: '#111', bd: '#fde047', txt: 'BUG' },
+  'Gasogi United': { bg: 'linear-gradient(135deg,#b91c1c 60%,#facc15 100%)', fg: '#fff', bd: '#fca5a5', txt: 'GAS' },
+  'Amagaju': { bg: 'linear-gradient(135deg,#15803d 60%,#111 100%)', fg: '#fff', bd: '#4ade80', txt: 'AMA' },
+  'Musanze': { bg: 'linear-gradient(135deg,#1e40af 60%,#fff 100%)', fg: '#fff', bd: '#93c5fd', txt: 'MUS' },
+  "Etoile de l'Est": { bg: 'linear-gradient(135deg,#dc2626 60%,#fff 100%)', fg: '#fff', bd: '#fca5a5', txt: 'ETO' },
 };
 
 const CompLogo = ({ p }: { p: any }) => {
@@ -50,8 +54,8 @@ const Crest = ({ tm }: { tm: any }) => {
 
 export default function App() {
   const [lang, setLang] = useState<Lang>('ENG');
-  const [matches, setMatches] = useState<any[]>(() => { try { return JSON.parse(localStorage.getItem('kus_v17') || '[]'); } catch { return []; } });
-  const [favs, setFavs] = useState<number[]>(() => { try { return JSON.parse(localStorage.getItem('kus_f17') || '[]'); } catch { return []; } });
+  const [matches, setMatches] = useState<any[]>(() => { try { return JSON.parse(localStorage.getItem('kus_v18') || '[]'); } catch { return []; } });
+  const [favs, setFavs] = useState<number[]>(() => { try { return JSON.parse(localStorage.getItem('kus_f18') || '[]'); } catch { return []; } });
   const [lg, setLg] = useState('ALL');
   const [st, setSt] = useState('ALL');
   const [q, setQ] = useState('');
@@ -66,14 +70,14 @@ export default function App() {
 
   const load = (c = lg) => {
     fetch(c === 'ALL' ? '/api/matches' : `/api/matches?type=comp_matches&code=${c}`).then(r => r.json()).then(d => {
-      if (Array.isArray(d.matches)) { setMatches(d.matches); if (c === 'ALL') localStorage.setItem('kus_v17', JSON.stringify(d.matches)); }
+      if (Array.isArray(d.matches)) { setMatches(d.matches); if (c === 'ALL') localStorage.setItem('kus_v18', JSON.stringify(d.matches)); }
     }).catch(() => {});
   };
 
   useEffect(() => { load(lg); const i = setInterval(() => load(lg), 30000); return () => clearInterval(i); }, [lg]);
   useEffect(() => { fetch(`/api/matches?type=standings&code=${sideLg}`).then(r => r.json()).then(d => setSideTbl((Array.isArray(d?.standings) ? d.standings.at(0)?.table : []) || [])).catch(() => {}); }, [sideLg]);
 
-  const toggleFav = (e: any, id: number) => { e.stopPropagation(); const nx = favs.includes(id) ? favs.filter(x => x !== id) : [...favs, id]; setFavs(nx); localStorage.setItem('kus_f17', JSON.stringify(nx)); };
+  const toggleFav = (e: any, id: number) => { e.stopPropagation(); const nx = favs.includes(id) ? favs.filter(x => x !== id) : [...favs, id]; setFavs(nx); localStorage.setItem('kus_f18', JSON.stringify(nx)); };
 
   const openMatch = async (m: any) => {
     setSel(m); setMTab('INFO'); setDet(null); setMTbl([]); setH2h([]);
