@@ -2,7 +2,7 @@ const h = (u) => ['https', '//' + u].join(':');
 const RW_LEAGUE = { id: 9999, name: 'Rwanda Premier League', code: 'RW1' };
 const UEL_LEAGUE = { id: 9998, name: 'UEFA Europa League', code: 'UEL' };
 
-function getFallbackRwanda() {
+function getRwandaData() {
   const today = new Date().toISOString().slice(0, 10);
   const yest = new Date(Date.now() - 86400000).toISOString().slice(0, 10);
   const tom = new Date(Date.now() + 86400000).toISOString().slice(0, 10);
@@ -25,42 +25,9 @@ function getFallbackRwanda() {
       { id: 99201, competition: RW_LEAGUE, status: 'TIMED', utcDate: `${today}T15:00:00Z`, venue: 'Amahoro National Stadium', homeTeam: { id: 902, name: 'Rayon Sports', shortName: 'Rayon Sports' }, awayTeam: { id: 901, name: 'APR FC', shortName: 'APR FC' }, score: { fullTime: { home: null, away: null } } },
       { id: 99202, competition: RW_LEAGUE, status: 'FINISHED', utcDate: `${yest}T13:00:00Z`, venue: 'Kigali Pelé Stadium', homeTeam: { id: 903, name: 'Police FC', shortName: 'Police' }, awayTeam: { id: 911, name: 'Al-Hilal', shortName: 'Al-Hilal' }, score: { fullTime: { home: 0, away: 1 } } },
       { id: 99203, competition: RW_LEAGUE, status: 'FINISHED', utcDate: `${yest}T13:00:00Z`, venue: 'Nyamagabe Stadium', homeTeam: { id: 914, name: 'Amagaju FC', shortName: 'Amagaju' }, awayTeam: { id: 910, name: 'Marines FC', shortName: 'Marines' }, score: { fullTime: { home: 0, away: 0 } } },
-      { id: 99204, competition: RW_LEAGUE, status: 'FINISHED', utcDate: `${yest}T13:00:00Z`, venue: 'Ngoma Stadium', homeTeam: { id: 916, name: "Etoile de l'Est", shortName: "Etoile de l'Est" }, awayTeam: { id: 913, name: 'Bugesera FC', shortName: 'Bugesera' }, score: { fullTime: { home: 0, away: 3 } } },
-      { id: 99205, competition: RW_LEAGUE, status: 'FINISHED', utcDate: `${yest}T13:00:00Z`, venue: 'Kigali Pelé Stadium', homeTeam: { id: 907, name: 'Gasogi United', shortName: 'Gasogi United' }, awayTeam: { id: 905, name: 'Kiyovu Sports', shortName: 'Kiyovu Sports' }, score: { fullTime: { home: 1, away: 4 } } },
-      { id: 99206, competition: RW_LEAGUE, status: 'TIMED', utcDate: `${tom}T13:00:00Z`, venue: 'Gicumbi Stadium', homeTeam: { id: 912, name: 'Gicumbi FC', shortName: 'Gicumbi' }, awayTeam: { id: 915, name: 'Musanze FC', shortName: 'Musanze' }, score: { fullTime: { home: null, away: null } } },
+      { id: 99204, competition: RW_LEAGUE, status: 'TIMED', utcDate: `${tom}T13:00:00Z`, venue: 'Gicumbi Stadium', homeTeam: { id: 912, name: 'Gicumbi FC', shortName: 'Gicumbi' }, awayTeam: { id: 915, name: 'Musanze FC', shortName: 'Musanze' }, score: { fullTime: { home: null, away: null } } },
     ],
   };
-}
-
-async function getRwandaData() {
-  const fb = getFallbackRwanda();
-  try {
-    const r = await fetch(h('://espn.com'));
-    if (r.ok) {
-      const d = await r.json();
-      if (Array.isArray(d?.events) && d.events.length > 0) {
-        const liveMatches = d.events.map((ev) => {
-          const comp = ev.competitions?.at(0);
-          const home = comp?.competitors?.find((c) => c.homeAway === 'home');
-          const away = comp?.competitors?.find((c) => c.homeAway === 'away');
-          const state = ev.status?.type?.state;
-          return {
-            id: Number(ev.id) || 99000,
-            competition: RW_LEAGUE,
-            status: state === 'in' ? 'IN_PLAY' : state === 'post' ? 'FINISHED' : 'TIMED',
-            minute: ev.status?.displayClock,
-            utcDate: ev.date,
-            venue: comp?.venue?.fullName || 'Rwanda',
-            homeTeam: { id: Number(home?.team?.id) || 901, name: home?.team?.displayName, shortName: home?.team?.shortDisplayName || home?.team?.displayName, crest: home?.team?.logo || '' },
-            awayTeam: { id: Number(away?.team?.id) || 902, name: away?.team?.displayName, shortName: away?.team?.shortDisplayName || away?.team?.displayName, crest: away?.team?.logo || '' },
-            score: { fullTime: { home: state === 'pre' ? null : Number(home?.score ?? 0), away: state === 'pre' ? null : Number(away?.score ?? 0) } },
-          };
-        });
-        return { matches: liveMatches, table: fb.table };
-      }
-    }
-  } catch {}
-  return fb;
 }
 
 function getUelData() {
@@ -71,7 +38,7 @@ function getUelData() {
     { id: 100, name: 'AS Roma', shortName: 'Roma', crest: `${base}100.png` },
     { id: 77, name: 'Athletic Club', shortName: 'Athletic', crest: `${base}77.png` },
   ];
-  const d = new Date(Date.now() + 5 * 86400000).toISOString().slice(0, 10);
+  const d = new Date(Date.now() + 3 * 86400000).toISOString().slice(0, 10);
   return {
     table: teams.map((tm, i) => ({ position: i + 1, team: tm, playedGames: 4, goalDifference: 6 - i, points: 12 - i * 2 })),
     matches: [
@@ -85,14 +52,8 @@ export default async function handler(req, res) {
   try {
     const { type, id, code } = req.query || {};
     const host = ['api', 'football-data', 'org'].join('.');
-    if (code === 'RW1') {
-      const rw = await getRwandaData();
-      return res.status(200).json(type === 'standings' ? { standings: [{ table: rw.table }] } : { matches: rw.matches });
-    }
-    if (code === 'UEL') {
-      const uel = getUelData();
-      return res.status(200).json(type === 'standings' ? { standings: [{ table: uel.table }] } : { matches: uel.matches });
-    }
+    if (code === 'RW1') { const rw = getRwandaData(); return res.status(200).json(type === 'standings' ? { standings: [{ table: rw.table }] } : { matches: rw.matches }); }
+    if (code === 'UEL') { const uel = getUelData(); return res.status(200).json(type === 'standings' ? { standings: [{ table: uel.table }] } : { matches: uel.matches }); }
 
     let apiUrl = '';
     if (type === 'comp_matches' && code) apiUrl = h(`${host}/v4/competitions/${code}/matches`);
@@ -101,14 +62,13 @@ export default async function handler(req, res) {
     else if (type === 'detail' && id) apiUrl = h(`${host}/v4/matches/${id}`);
     else {
       const now = new Date();
-      apiUrl = h(`${host}/v4/matches?dateFrom=${new Date(now.getTime() - 2 * 86400000).toISOString().slice(0, 10)}&dateTo=${new Date(now.getTime() + 8 * 86400000).toISOString().slice(0, 10)}`);
+      const from = new Date(now.getTime() - 86400000).toISOString().slice(0, 10);
+      const to = new Date(now.getTime() + 2 * 86400000).toISOString().slice(0, 10);
+      apiUrl = h(`${host}/v4/matches?dateFrom=${from}&dateTo=${to}`);
     }
 
     const data = await fetch(apiUrl, { headers: { 'X-Auth-Token': 'dcc25e0d94964ac1a382090daf4dbc55' } }).then((r) => r.json());
-    if (!type && Array.isArray(data.matches)) {
-      const rw = await getRwandaData();
-      data.matches = [...rw.matches, ...getUelData().matches, ...data.matches];
-    }
+    if (!type && Array.isArray(data.matches)) data.matches = [...getRwandaData().matches, ...data.matches];
     res.setHeader('Cache-Control', 's-maxage=30, stale-while-revalidate=60');
     return res.status(200).json(data);
   } catch (e) {
