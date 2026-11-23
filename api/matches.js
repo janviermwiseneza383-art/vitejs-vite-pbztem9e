@@ -47,6 +47,20 @@ function getRwanda2026Data() {
   };
 }
 
+async function getWorldLiveFootball() {
+  try {
+    const d = await fetch(h('v3.football.api-sports.io/fixtures?live=all'), { headers: { 'x-apisports-key': API_KEY } }).then((r) => r.json());
+    return (Array.isArray(d?.response) ? d.response : []).slice(0, 30).map((f) => ({
+      id: f.fixture?.id, competition: { name: `${f.league?.country || ''} • ${f.league?.name || 'Live'}`, code: 'LIVE' },
+      status: 'IN_PLAY', minute: f.fixture?.status?.elapsed || 'LIVE', injuryTime: f.fixture?.status?.extra || null,
+      utcDate: f.fixture?.date || new Date().toISOString(), venue: f.fixture?.venue?.name || 'Stadium',
+      homeTeam: { id: f.teams?.home?.id, name: f.teams?.home?.name, shortName: f.teams?.home?.name, crest: f.teams?.home?.logo || '' },
+      awayTeam: { id: f.teams?.away?.id, name: f.teams?.away?.name, shortName: f.teams?.away?.name, crest: f.teams?.away?.logo || '' },
+      score: { fullTime: { home: f.goals?.home ?? 0, away: f.goals?.away ?? 0 } },
+    }));
+  } catch { return []; }
+}
+
 async function getOtherSport(sportCode) {
   const hdrs = { 'x-apisports-key': API_KEY };
   const today = new Date().toISOString().slice(0, 10);
@@ -55,10 +69,10 @@ async function getOtherSport(sportCode) {
   try {
     const d = await fetch(h(map[sportCode]), { headers: hdrs }).then((r) => r.json());
     return (Array.isArray(d?.response) ? d.response : []).slice(0, 30).map((g, i) => {
-      const st = g.status?.short || 'NS', fin = ['FT', 'AOT', 'AP'].includes(st) || g.status === 'Completed';
+      const st = g.status?.short || 'NS', fin = ['FT', 'AOT', 'AP'].includes(st) || g.status === 'Completed', live = !fin && st !== 'NS' && st !== 'PST' && st !== 'CANC';
       const hs = typeof g.scores?.home === 'object' ? g.scores?.home?.total : g.scores?.home;
       const as = typeof g.scores?.away === 'object' ? g.scores?.away?.total : g.scores?.away;
-      return { id: g.id || i + 70000, competition: { name: g.league?.name || g.competition?.name || sportCode, code: sportCode }, status: fin ? 'FINISHED' : 'TIMED', utcDate: g.date || new Date().toISOString(), venue: g.country?.name || 'Arena', homeTeam: { id: 1, name: g.teams?.home?.name || g.fighters?.first?.name || 'Home', shortName: g.teams?.home?.name || 'Home', crest: g.teams?.home?.logo || '' }, awayTeam: { id: 2, name: g.teams?.away?.name || g.fighters?.second?.name || 'Away', shortName: g.teams?.away?.name || 'Away', crest: g.teams?.away?.logo || '' }, score: { fullTime: { home: hs ?? null, away: as ?? null } } };
+      return { id: g.id || i + 70000, competition: { name: g.league?.name || g.competition?.name || sportCode, code: sportCode }, status: live ? 'IN_PLAY' : fin ? 'FINISHED' : 'TIMED', minute: g.status?.timer || st, utcDate: g.date || new Date().toISOString(), venue: g.country?.name || 'Arena', homeTeam: { id: 1, name: g.teams?.home?.name || g.fighters?.first?.name || 'Home', shortName: g.teams?.home?.name || 'Home', crest: g.teams?.home?.logo || '' }, awayTeam: { id: 2, name: g.teams?.away?.name || g.fighters?.second?.name || 'Away', shortName: g.teams?.away?.name || 'Away', crest: g.teams?.away?.logo || '' }, score: { fullTime: { home: hs ?? null, away: as ?? null } } };
     });
   } catch { return []; }
 }
@@ -81,12 +95,3 @@ export default async function handler(req, res) {
     else if (type === 'h2h' && id) apiUrl = h(`${host}/v4/matches/${id}/head2head?limit=6`);
     else if (type === 'detail' && id) apiUrl = h(`${host}/v4/matches/${id}`);
     else apiUrl = h(`${host}/v4/matches?dateFrom=${from4}&dateTo=${to7}`);
-    const data = await fetch(apiUrl, { headers: { 'X-Auth-Token': 'dcc25e0d94964ac1a382090daf4dbc55' } }).then((r) => r.json());
-    if (Array.isArray(data.matches)) {
-      const merged = !type ? [...getRwanda2026Data().matches, ...data.matches] : data.matches;
-      data.matches = sortLiveScore(merged);
-    }
-    res.setHeader('Cache-Control', 's-maxage=60, stale-while-revalidate=120');
-    return res.status(200).json(data);
-  } catch (e) { return res.status(500).json({ error: e.message }); }
-}
