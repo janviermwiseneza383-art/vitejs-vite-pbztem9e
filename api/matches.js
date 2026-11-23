@@ -50,7 +50,7 @@ export default async function handler(req, res) {
       return res.status(200).json({ matches: sortLiveScore(arr) });
     }
 
-    const from5 = new Date(Date.now() - 5 * 86400000).toISOString().slice(0, 10);
+    const from5 = new Date(Date.now() - 10 * 86400000).toISOString().slice(0, 10);
     const to5 = new Date(Date.now() + 5 * 86400000).toISOString().slice(0, 10);
     let apiUrl = h(`${host}/v4/matches?dateFrom=${from5}&dateTo=${to5}`);
     if (type === 'comp_matches' && code) apiUrl = h(`${host}/v4/competitions/${code}/matches?dateFrom=${from5}&dateTo=${to5}`);
@@ -71,3 +71,4 @@ export default async function handler(req, res) {
     return res.status(200).json(fdRes);
   } catch (e) { return res.status(200).json({ matches: getRwandaData().matches }); }
 }
+
