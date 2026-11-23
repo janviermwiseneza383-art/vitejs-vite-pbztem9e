@@ -73,23 +73,59 @@ export default function App() {
   const [h2h, setH2h] = useState<any[]>([]);
   const t = TXT[lang];
 
-  const load = (c = lg) => {
+  const load = async (c = lg) => {
     if (c === 'SCHOOL') { setMatches(customMatches); return; }
-    fetch(c === 'ALL' ? '/api/matches' : `/api/matches?type=comp_matches&code=${c}`).then(r => r.json()).then(d => {
-      if (Array.isArray(d.matches) && d.matches.length > 0) {
-        if (c === 'ALL') {
-          setMatches(prev => {
-            const map = new Map<number, any>();
-            prev.forEach(m => { if ((Date.now() - new Date(m.utcDate).getTime()) / 3600000 < 48) map.set(m.id, m.status === 'IN_PLAY' ? { ...m, status: 'FINISHED' } : m); });
-            d.matches.forEach((m: any) => map.set(m.id, m));
-            const merged = Array.from(map.values());
-            localStorage.setItem('kus_live_keep', JSON.stringify(merged.slice(0, 120)));
-            return merged;
-          });
-        } else setMatches(d.matches);
-      }
-    }).catch(() => {});
+    if (c !== 'ALL') {
+      fetch(`/api/matches?type=comp_matches&code=${c}`).then(r => r.json()).then(d => { if (Array.isArray(d.matches)) setMatches(d.matches); }).catch(() => {});
+      return;
+    }
+    const espnUrls = [
+      'https://espn.com',
+      'https://espn.com',
+      'https://espn.com',
+      'https://espn.com',
+      'https://espn.com',
+      'https://espn.com',
+      'https://espn.com',
+      'https://espn.com',
+    ];
+    const [apiData, ...espnRes] = await Promise.all([
+      fetch('/api/matches').then(r => r.json()).catch(() => ({ matches: [] })),
+      ...espnUrls.map(u => fetch(u).then(r => r.json()).catch(() => ({ events: [] }))),
+    ]);
+    const espnList = espnRes.flatMap(d => {
+      const lgName = d?.leagues?.at(0)?.abbreviation || d?.leagues?.at(0)?.name || 'Live';
+      return (Array.isArray(d?.events) ? d.events : []).map((ev: any) => {
+        const comp = ev.competitions?.at(0);
+        const home = comp?.competitors?.find((x: any) => x.homeAway === 'home');
+        const away = comp?.competitors?.find((x: any) => x.homeAway === 'away');
+        const st = ev.status?.type?.state;
+        return {
+          id: Number(ev.id) || Math.floor(Math.random() * 900000),
+          competition: { name: lgName, code: 'ESPN' },
+          status: st === 'in' ? 'IN_PLAY' : st === 'post' ? 'FINISHED' : 'TIMED',
+          minute: ev.status?.displayClock || 'LIVE',
+          utcDate: ev.date || new Date().toISOString(),
+          venue: comp?.venue?.fullName || 'Stadium',
+          homeTeam: { id: 1, name: home?.team?.displayName || 'Home', shortName: home?.team?.shortDisplayName || home?.team?.name || 'Home', crest: home?.team?.logo || '' },
+          awayTeam: { id: 2, name: away?.team?.displayName || 'Away', shortName: away?.team?.shortDisplayName || away?.team?.name || 'Away', crest: away?.team?.logo || '' },
+          score: { fullTime: { home: st === 'pre' ? null : Number(home?.score ?? 0), away: st === 'pre' ? null : Number(away?.score ?? 0) } },
+        };
+      });
+    });
+    const incoming = [...espnList, ...(Array.isArray(apiData?.matches) ? apiData.matches : [])];
+    if (incoming.length > 0) {
+      setMatches(prev => {
+        const map = new Map<number, any>();
+        prev.forEach(m => { if ((Date.now() - new Date(m.utcDate).getTime()) / 3600000 < 48) map.set(m.id, m.status === 'IN_PLAY' ? { ...m, status: 'FINISHED' } : m); });
+        incoming.forEach((m: any) => map.set(m.id, m));
+        const merged = Array.from(map.values());
+        localStorage.setItem('kus_live_keep', JSON.stringify(merged.slice(0, 150)));
+        return merged;
+      });
+    }
   };
+
 
 
   useEffect(() => { if (window.location.search.includes('admin=1')) setShowLogin(true); load(lg); const i = setInterval(() => load(lg), 30000); return () => clearInterval(i); }, [lg, customMatches]);
