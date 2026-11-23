@@ -58,7 +58,8 @@ export default function App() {
   const [adBanner, setAdBanner] = useState(() => localStorage.getItem('kus_a10') || '📢 Advertise on Kigali Update Score • Instant Booking via MTN MoMo: 078XXXXXXX');
   const [momoNum, setMomoNum] = useState(() => localStorage.getItem('kus_momo') || '078XXXXXXX');
   const [form, setForm] = useState({ home: 'TTC Muhanga', away: 'G.S Shyogwe', hs: '2', as: '1', comp: 'Schools Championship', venue: 'Shyogwe Pitch', date: new Date().toISOString().slice(0, 16), status: 'FINISHED', min: '90', added: '4', penH: '', penA: '', goalsTxt: "Jean 23' (TTC Muhanga), Patrick 67' (TTC Muhanga), Bosco 41' (G.S Shyogwe)", lnpH: '1. Jean, 2. Eric, 3. Claude, 4. Patrick, 5. Kevin', lnpA: '1. Bosco, 2. Pacifique, 3. Thierry, 4. Olivier, 5. Samuel' });
-  const [matches, setMatches] = useState<any[]>([]);
+    const [matches, setMatches] = useState<any[]>(() => { try { return JSON.parse(localStorage.getItem('kus_live_keep') || '[]'); } catch { return []; } });
+
   const [favs, setFavs] = useState<number[]>(() => { try { return JSON.parse(localStorage.getItem('kus_f10') || '[]'); } catch { return []; } });
   const [lg, setLg] = useState('ALL');
   const [st, setSt] = useState('ALL');
@@ -74,8 +75,22 @@ export default function App() {
 
   const load = (c = lg) => {
     if (c === 'SCHOOL') { setMatches(customMatches); return; }
-    fetch(c === 'ALL' ? '/api/matches' : `/api/matches?type=comp_matches&code=${c}`).then(r => r.json()).then(d => { if (Array.isArray(d.matches)) setMatches(d.matches); }).catch(() => {});
+    fetch(c === 'ALL' ? '/api/matches' : `/api/matches?type=comp_matches&code=${c}`).then(r => r.json()).then(d => {
+      if (Array.isArray(d.matches) && d.matches.length > 0) {
+        if (c === 'ALL') {
+          setMatches(prev => {
+            const map = new Map<number, any>();
+            prev.forEach(m => { if ((Date.now() - new Date(m.utcDate).getTime()) / 3600000 < 48) map.set(m.id, m.status === 'IN_PLAY' ? { ...m, status: 'FINISHED' } : m); });
+            d.matches.forEach((m: any) => map.set(m.id, m));
+            const merged = Array.from(map.values());
+            localStorage.setItem('kus_live_keep', JSON.stringify(merged.slice(0, 120)));
+            return merged;
+          });
+        } else setMatches(d.matches);
+      }
+    }).catch(() => {});
   };
+
 
   useEffect(() => { if (window.location.search.includes('admin=1')) setShowLogin(true); load(lg); const i = setInterval(() => load(lg), 30000); return () => clearInterval(i); }, [lg, customMatches]);
   useEffect(() => { fetch(`/api/matches?type=standings&code=${sideLg}`).then(r => r.json()).then(d => setSideTbl((Array.isArray(d?.standings) ? d.standings.at(0)?.table : []) || [])).catch(() => {}); }, [sideLg]);
