@@ -45,11 +45,37 @@ async function getLiveWorld() {
   } catch { return []; }
 }
 
+async function getMatchExtras(fixtureId, homeName, dateStr) {
+  const hdrs = { 'x-apisports-key': API_KEY };
+  const base = h('v3.football.api-sports.io');
+  let targetId = fixtureId;
+  try {
+    if (homeName && dateStr) {
+      const day = dateStr.slice(0, 10);
+      const sr = await fetch(`${base}/fixtures?date=${day}`, { headers: hdrs }).then((r) => r.json()).catch(() => ({ response: [] }));
+      const key = homeName.toLowerCase().split(' ').at(0);
+      const found = (Array.isArray(sr?.response) ? sr.response : []).find((x) => x.teams?.home?.name?.toLowerCase().includes(key) || x.teams?.away?.name?.toLowerCase().includes(key));
+      if (found?.fixture?.id) targetId = found.fixture.id;
+    }
+    const [evRes, lnRes] = await Promise.all([
+      fetch(`${base}/fixtures/events?fixture=${targetId}`, { headers: hdrs }).then((r) => r.json()).catch(() => ({ response: [] })),
+      fetch(`${base}/fixtures/lineups?fixture=${targetId}`, { headers: hdrs }).then((r) => r.json()).catch(() => ({ response: [] })),
+    ]);
+    const goals = (Array.isArray(evRes?.response) ? evRes.response : []).filter((e) => e.type === 'Goal').map((g) => ({ minute: g.time?.elapsed, scorer: { name: g.player?.name }, team: { name: g.team?.name } }));
+    const lns = Array.isArray(lnRes?.response) ? lnRes.response : [];
+    const hLine = (lns.at(0)?.startXI || []).map((p) => ({ shirtNumber: p.player?.number, name: p.player?.name }));
+    const aLine = (lns.at(1)?.startXI || []).map((p) => ({ shirtNumber: p.player?.number, name: p.player?.name }));
+    return { goals, homeTeam: { lineup: hLine }, awayTeam: { lineup: aLine } };
+  } catch { return { goals: [], homeTeam: { lineup: [] }, awayTeam: { lineup: [] } }; }
+}
+
 export default async function handler(req, res) {
   try {
-    const { type, id, code } = req.query || {};
+    const { type, id, code, home, date } = req.query || {};
     const host = ['api', 'football-data', 'org'].join('.');
     if (code === 'RW1') { const rw = getRwandaData(); return res.status(200).json(type === 'standings' ? { standings: [{ table: rw.table }] } : { matches: rw.matches }); }
+    if (type === 'extras') return res.status(200).json(await getMatchExtras(id, home, date));
+
     const now = new Date();
     const from4 = new Date(now.getTime() - 4 * 86400000).toISOString().slice(0, 10);
     const to7 = new Date(now.getTime() + 7 * 86400000).toISOString().slice(0, 10);
@@ -58,15 +84,12 @@ export default async function handler(req, res) {
     else if (type === 'standings' && code) apiUrl = h(`${host}/v4/competitions/${code}/standings`);
     else if (type === 'h2h' && id) apiUrl = h(`${host}/v4/matches/${id}/head2head?limit=6`);
     else if (type === 'detail' && id) apiUrl = h(`${host}/v4/matches/${id}`);
-    const r = await fetch(apiUrl, { headers: { 'X-Auth-Token': 'dcc25e0d94964ac1a382090daf4dbc55' } });
-    const data = await r.json();
+    const data = await fetch(apiUrl, { headers: { 'X-Auth-Token': 'dcc25e0d94964ac1a382090daf4dbc55' } }).then((r) => r.json());
     if (!type) {
       const live = await getLiveWorld();
       const baseMatches = Array.isArray(data.matches) ? data.matches : [];
       return res.status(200).json({ matches: sortLiveScore([...live, ...getRwandaData().matches, ...baseMatches]) });
     }
     return res.status(200).json(data);
-  } catch (e) {
-    return res.status(200).json({ matches: getRwandaData().matches, error: e.message });
-  }
+  } catch (e) { return res.status(200).json({ matches: getRwandaData().matches, error: e.message }); }
 }
