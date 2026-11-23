@@ -35,7 +35,7 @@ async function getLiveWorld() {
     const r = await fetch(h('v3.football.api-sports.io/fixtures?live=all'), { headers: { 'x-apisports-key': API_KEY } });
     const d = await r.json();
     if (!Array.isArray(d?.response)) return [];
-    return d.response.slice(0, 25).map((f) => ({
+    return d.response.slice(0, 30).map((f) => ({
       id: f.fixture?.id, competition: { name: `${f.league?.country || ''} • ${f.league?.name || 'Live'}`, code: 'LIVE' },
       status: 'IN_PLAY', minute: f.fixture?.status?.elapsed || 'LIVE', utcDate: f.fixture?.date || new Date().toISOString(), venue: f.fixture?.venue?.name || 'Stadium',
       homeTeam: { id: f.teams?.home?.id, name: f.teams?.home?.name, shortName: f.teams?.home?.name, crest: f.teams?.home?.logo || '' },
@@ -45,11 +45,30 @@ async function getLiveWorld() {
   } catch { return []; }
 }
 
+async function getOtherSport(sportCode) {
+  const today = new Date().toISOString().slice(0, 10);
+  const map = { BASKET: 'v1.basketball.api-sports.io/games?date=' + today, VOLLEY: 'v1.volleyball.api-sports.io/games?date=' + today, RUGBY: 'v1.rugby.api-sports.io/games?date=' + today, HANDBALL: 'v1.handball.api-sports.io/games?date=' + today, HOCKEY: 'v1.hockey.api-sports.io/games?date=' + today, NFL: 'v1.american-football.api-sports.io/games?date=' + today, BASEBALL: 'v1.baseball.api-sports.io/games?date=' + today, MMA: 'v1.mma.api-sports.io/fights?date=' + today, F1: 'v1.formula-1.api-sports.io/races?season=2026' };
+  if (!map[sportCode]) return [];
+  try {
+    const d = await fetch(h(map[sportCode]), { headers: { 'x-apisports-key': API_KEY } }).then((r) => r.json());
+    return (Array.isArray(d?.response) ? d.response : []).slice(0, 30).map((g, i) => {
+      const st = g.status?.short || 'NS', fin = ['FT', 'AOT', 'AP'].includes(st) || g.status === 'Completed', live = !fin && st !== 'NS' && st !== 'PST' && st !== 'CANC';
+      const hs = typeof g.scores?.home === 'object' ? g.scores?.home?.total : g.scores?.home;
+      const as = typeof g.scores?.away === 'object' ? g.scores?.away?.total : g.scores?.away;
+      return { id: g.id || i + 70000, competition: { name: g.league?.name || g.competition?.name || sportCode, code: sportCode }, status: live ? 'IN_PLAY' : fin ? 'FINISHED' : 'TIMED', minute: g.status?.timer || st, utcDate: g.date || new Date().toISOString(), venue: g.country?.name || 'Arena', homeTeam: { id: 1, name: g.teams?.home?.name || g.fighters?.first?.name || 'Home', shortName: g.teams?.home?.name || 'Home', crest: g.teams?.home?.logo || '' }, awayTeam: { id: 2, name: g.teams?.away?.name || g.fighters?.second?.name || 'Away', shortName: g.teams?.away?.name || 'Away', crest: g.teams?.away?.logo || '' }, score: { fullTime: { home: hs ?? null, away: as ?? null } } };
+    });
+  } catch { return []; }
+}
+
 export default async function handler(req, res) {
   try {
     const { type, id, code } = req.query || {};
     const host = ['api', 'football-data', 'org'].join('.');
     if (code === 'RW1') { const rw = getRwandaData(); return res.status(200).json(type === 'standings' ? { standings: [{ table: rw.table }] } : { matches: rw.matches }); }
+    if (['BASKET', 'VOLLEY', 'RUGBY', 'HANDBALL', 'HOCKEY', 'NFL', 'BASEBALL', 'MMA', 'F1'].includes(code)) {
+      if (type === 'standings') return res.status(200).json({ standings: [{ table: [] }] });
+      return res.status(200).json({ matches: sortLiveScore(await getOtherSport(code)) });
+    }
     const now = new Date();
     const from4 = new Date(now.getTime() - 4 * 86400000).toISOString().slice(0, 10);
     const to7 = new Date(now.getTime() + 7 * 86400000).toISOString().slice(0, 10);
