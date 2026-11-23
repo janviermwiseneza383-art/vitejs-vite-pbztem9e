@@ -28,51 +28,29 @@ function getRwandaData() {
       { id: 99095, competition: RW_LEAGUE, status: 'FINISHED', utcDate: '2026-11-21T15:00:00Z', venue: 'Amahoro Stadium', homeTeam: { id: 902, name: 'Rayon Sports', shortName: 'Rayon Sports' }, awayTeam: { id: 901, name: 'APR FC', shortName: 'APR FC' }, score: { fullTime: { home: 1, away: 1 } } },
     ],
   };
-}
-
-async function getAllSportsLive() {
+  async function getAllSportsLive() {
   const hdrs = { 'x-apisports-key': API_KEY };
   const today = new Date().toISOString().slice(0, 10);
   const [fb, bk, vb, hb, hk] = await Promise.all([
     fetch(h('v3.football.api-sports.io/fixtures?live=all'), { headers: hdrs }).then((r) => r.json()).catch(() => ({ response: [] })),
-    fetch(h(`v1.basketball.api-sports.io/games?date=${today}`), { headers: hdrs }).then((r) => r.json()).catch(() => ({ response: [] })),
-    fetch(h(`v1.volleyball.api-sports.io/games?date=${today}`), { headers: hdrs }).then((r) => r.json()).catch(() => ({ response: [] })),
-    fetch(h(`v1.handball.api-sports.io/games?date=${today}`), { headers: hdrs }).then((r) => r.json()).catch(() => ({ response: [] })),
-    fetch(h(`v1.hockey.api-sports.io/games?date=${today}`), { headers: hdrs }).then((r) => r.json()).catch(() => ({ response: [] })),
+    fetch(h('v1.basketball.api-sports.io/games?date=' + today), { headers: hdrs }).then((r) => r.json()).catch(() => ({ response: [] })),
+    fetch(h('v1.volleyball.api-sports.io/games?date=' + today), { headers: hdrs }).then((r) => r.json()).catch(() => ({ response: [] })),
+    fetch(h('v1.handball.api-sports.io/games?date=' + today), { headers: hdrs }).then((r) => r.json()).catch(() => ({ response: [] })),
+    fetch(h('v1.hockey.api-sports.io/games?date=' + today), { headers: hdrs }).then((r) => r.json()).catch(() => ({ response: [] })),
   ]);
-
-  const fbLive = (Array.isArray(fb?.response) ? fb.response : []).slice(0, 20).map((f) => ({
-    id: f.fixture?.id, competition: { name: `⚽ ${f.league?.country || ''} • ${f.league?.name || 'Live'}`, code: 'LIVE' },
-    status: 'IN_PLAY', minute: f.fixture?.status?.elapsed || 'LIVE', utcDate: f.fixture?.date || new Date().toISOString(), venue: f.fixture?.venue?.name || 'Stadium',
-    homeTeam: { id: f.teams?.home?.id, name: f.teams?.home?.name, shortName: f.teams?.home?.name, crest: f.teams?.home?.logo || '' },
-    awayTeam: { id: f.teams?.away?.id, name: f.teams?.away?.name, shortName: f.teams?.away?.name, crest: f.teams?.away?.logo || '' },
-    score: { fullTime: { home: f.goals?.home ?? 0, away: f.goals?.away ?? 0 } },
-  }));
-
-  const mapSport = (arr, icon, code) => (Array.isArray(arr) ? arr : []).filter((g) => {
-    const st = g.status?.short || 'NS';
-    return !['NS', 'PST', 'CANC', 'FT', 'AOT', 'AP'].includes(st) && g.status !== 'Scheduled' && g.status !== 'Completed';
-  }).slice(0, 10).map((g, i) => ({
-    id: g.id || i + 80000, competition: { name: `${icon} ${g.league?.name || code}`, code },
-    status: 'IN_PLAY', minute: g.status?.timer || g.status?.short || 'LIVE', utcDate: g.date || new Date().toISOString(), venue: g.country?.name || 'Arena',
-    homeTeam: { id: 1, name: g.teams?.home?.name, shortName: g.teams?.home?.name, crest: g.teams?.home?.logo || '' },
-    awayTeam: { id: 2, name: g.teams?.away?.name, shortName: g.teams?.away?.name, crest: g.teams?.away?.logo || '' },
-    score: { fullTime: { home: (typeof g.scores?.home === 'object' ? g.scores?.home?.total : g.scores?.home) ?? 0, away: (typeof g.scores?.away === 'object' ? g.scores?.away?.total : g.scores?.away) ?? 0 } },
-  }));
-
-  return [...fbLive, ...mapSport(bk?.response, '🏀', 'BASKET'), ...mapSport(vb?.response, '🏐', 'VOLLEY'), ...mapSport(hb?.response, '🤾', 'HANDBALL'), ...mapSport(hk?.response, '🏒', 'HOCKEY')];
+  const fbLive = (Array.isArray(fb?.response) ? fb.response : []).slice(0, 20).map((f) => ({ id: f.fixture?.id, competition: { name: '⚽ ' + (f.league?.name || 'Live'), code: 'LIVE' }, status: 'IN_PLAY', minute: f.fixture?.status?.elapsed || 'LIVE', utcDate: f.fixture?.date || new Date().toISOString(), venue: f.fixture?.venue?.name || 'Stadium', homeTeam: { id: 1, name: f.teams?.home?.name, shortName: f.teams?.home?.name, crest: f.teams?.home?.logo || '' }, awayTeam: { id: 2, name: f.teams?.away?.name, shortName: f.teams?.away?.name, crest: f.teams?.away?.logo || '' }, score: { fullTime: { home: f.goals?.home ?? 0, away: f.goals?.away ?? 0 } } }));
+  const mapSp = (arr, ic, cd) => (Array.isArray(arr) ? arr : []).filter((g) => !['NS', 'PST', 'CANC', 'FT', 'AOT', 'AP'].includes(g.status?.short || 'NS')).slice(0, 8).map((g, i) => ({ id: g.id || i + 80000, competition: { name: ic + ' ' + (g.league?.name || cd), code: cd }, status: 'IN_PLAY', minute: g.status?.timer || g.status?.short || 'LIVE', utcDate: g.date || new Date().toISOString(), venue: g.country?.name || 'Arena', homeTeam: { id: 1, name: g.teams?.home?.name, shortName: g.teams?.home?.name, crest: g.teams?.home?.logo || '' }, awayTeam: { id: 2, name: g.teams?.away?.name, shortName: g.teams?.away?.name, crest: g.teams?.away?.logo || '' }, score: { fullTime: { home: (typeof g.scores?.home === 'object' ? g.scores?.home?.total : g.scores?.home) ?? 0, away: (typeof g.scores?.away === 'object' ? g.scores?.away?.total : g.scores?.away) ?? 0 } } }));
+  return [...fbLive, ...mapSp(bk?.response, '🏀', 'BASKET'), ...mapSp(vb?.response, '🏐', 'VOLLEY'), ...mapSp(hb?.response, '🤾', 'HANDBALL'), ...mapSp(hk?.response, '🏒', 'HOCKEY')];
 }
 
 async function getOtherSport(sportCode) {
   const today = new Date().toISOString().slice(0, 10);
-  const yest = new Date(Date.now() - 86400000).toISOString().slice(0, 10);
-  const map = { BASKET: [`v1.basketball.api-sports.io/games?date=${today}`, `v1.basketball.api-sports.io/games?date=${yest}`], VOLLEY: [`v1.volleyball.api-sports.io/games?date=${today}`, `v1.volleyball.api-sports.io/games?date=${yest}`], RUGBY: [`v1.rugby.api-sports.io/games?date=${today}`, `v1.rugby.api-sports.io/games?date=${yest}`], HANDBALL: [`v1.handball.api-sports.io/games?date=${today}`, `v1.handball.api-sports.io/games?date=${yest}`], HOCKEY: [`v1.hockey.api-sports.io/games?date=${today}`, `v1.hockey.api-sports.io/games?date=${yest}`], NFL: [`v1.american-football.api-sports.io/games?date=${today}`], BASEBALL: [`v1.baseball.api-sports.io/games?date=${today}`], MMA: [`v1.mma.api-sports.io/fights?date=${today}`], F1: ['v1.formula-1.api-sports.io/races?season=2026'] };
-  const urls = map[sportCode];
-  if (!urls) return [];
+  const map = { BASKET: 'v1.basketball.api-sports.io/games?date=' + today, VOLLEY: 'v1.volleyball.api-sports.io/games?date=' + today, RUGBY: 'v1.rugby.api-sports.io/games?date=' + today, HANDBALL: 'v1.handball.api-sports.io/games?date=' + today, HOCKEY: 'v1.hockey.api-sports.io/games?date=' + today, NFL: 'v1.american-football.api-sports.io/games?date=' + today, BASEBALL: 'v1.baseball.api-sports.io/games?date=' + today, MMA: 'v1.mma.api-sports.io/fights?date=' + today, F1: 'v1.formula-1.api-sports.io/races?season=2026' };
+  if (!map[sportCode]) return [];
   try {
-    const resList = await Promise.all(urls.map((u) => fetch(h(u), { headers: { 'x-apisports-key': API_KEY } }).then((r) => r.json()).catch(() => ({ response: [] }))));
-    return resList.flatMap((d) => (Array.isArray(d?.response) ? d.response : [])).slice(0, 35).map((g, i) => {
-      const st = g.status?.short || 'NS', fin = ['FT', 'AOT', 'AP'].includes(st) || g.status === 'Completed', live = !fin && st !== 'NS' && st !== 'PST' && st !== 'CANC' && g.status !== 'Scheduled';
+    const d = await fetch(h(map[sportCode]), { headers: { 'x-apisports-key': API_KEY } }).then((r) => r.json());
+    return (Array.isArray(d?.response) ? d.response : []).slice(0, 30).map((g, i) => {
+      const st = g.status?.short || 'NS', fin = ['FT', 'AOT', 'AP'].includes(st) || g.status === 'Completed', live = !fin && st !== 'NS' && st !== 'PST' && st !== 'CANC';
       return { id: g.id || i + 70000, competition: { name: g.league?.name || g.competition?.name || sportCode, code: sportCode }, status: live ? 'IN_PLAY' : fin ? 'FINISHED' : 'TIMED', minute: g.status?.timer || st, utcDate: g.date || new Date().toISOString(), venue: g.country?.name || 'Arena', homeTeam: { id: 1, name: g.teams?.home?.name || g.fighters?.first?.name || 'Home', shortName: g.teams?.home?.name || 'Home', crest: g.teams?.home?.logo || '' }, awayTeam: { id: 2, name: g.teams?.away?.name || g.fighters?.second?.name || 'Away', shortName: g.teams?.away?.name || 'Away', crest: g.teams?.away?.logo || '' }, score: { fullTime: { home: (typeof g.scores?.home === 'object' ? g.scores?.home?.total : g.scores?.home) ?? null, away: (typeof g.scores?.away === 'object' ? g.scores?.away?.total : g.scores?.away) ?? null } } };
     });
   } catch { return []; }
@@ -103,3 +81,7 @@ export default async function handler(req, res) {
       return res.status(200).json({ matches: sortLiveScore([...liveAll, ...getRwandaData().matches, ...baseMatches]) });
     }
     return res.status(200).json(data);
+  } catch (e) { return res.status(200).json({ matches: getRwandaData().matches, error: e.message }); }
+}
+
+}
