@@ -22,9 +22,9 @@ function getRwandaData() {
       { position: 12, team: { id: 907, name: 'Gasogi United', shortName: 'Gasogi United' }, playedGames: 8, won: 2, draw: 3, lost: 3, goalDifference: -2, points: 9 },
     ],
     matches: [
-      { id: 99303, competition: RW_LEAGUE, status: 'TIMED', utcDate: `${today}T15:00:00Z`, venue: 'Amahoro National Stadium', homeTeam: { id: 902, name: 'Rayon Sports', shortName: 'Rayon Sports' }, awayTeam: { id: 901, name: 'APR FC', shortName: 'APR FC' }, score: { fullTime: { home: null, away: null } } },
       { id: 99301, competition: RW_LEAGUE, status: 'FINISHED', utcDate: `${yest}T13:00:00Z`, venue: 'Gicumbi Stadium', homeTeam: { id: 912, name: 'Gicumbi FC', shortName: 'Gicumbi' }, awayTeam: { id: 913, name: 'Bugesera FC', shortName: 'Bugesera' }, score: { fullTime: { home: 2, away: 1 } } },
       { id: 99302, competition: RW_LEAGUE, status: 'FINISHED', utcDate: `${yest}T13:00:00Z`, venue: 'Huye Stadium', homeTeam: { id: 904, name: 'Mukura VS', shortName: 'Mukura' }, awayTeam: { id: 917, name: 'Gorilla FC', shortName: 'Gorilla' }, score: { fullTime: { home: 1, away: 0 } } },
+      { id: 99303, competition: RW_LEAGUE, status: 'TIMED', utcDate: `${today}T15:00:00Z`, venue: 'Amahoro National Stadium', homeTeam: { id: 902, name: 'Rayon Sports', shortName: 'Rayon Sports' }, awayTeam: { id: 901, name: 'APR FC', shortName: 'APR FC' }, score: { fullTime: { home: null, away: null } } },
       { id: 99304, competition: RW_LEAGUE, status: 'TIMED', utcDate: `${tom}T13:00:00Z`, venue: 'Kigali Pelé Stadium', homeTeam: { id: 905, name: 'Kiyovu Sports', shortName: 'Kiyovu Sports' }, awayTeam: { id: 918, name: 'Al-Merrikh', shortName: 'Al-Merrikh' }, score: { fullTime: { home: null, away: null } } },
     ],
   };
@@ -48,40 +48,27 @@ function getUelData() {
   };
 }
 
-function sortLiveScore(list) {
-  const rank = (s) => (['IN_PLAY', 'PAUSED'].includes(s) ? 0 : ['TIMED', 'SCHEDULED'].includes(s) ? 1 : 2);
-  return [...list].sort((a, b) => {
-    const r = rank(a.status) - rank(b.status);
-    if (r !== 0) return r;
-    const ta = new Date(a.utcDate).getTime();
-    const tb = new Date(b.utcDate).getTime();
-    return a.status === 'FINISHED' ? tb - ta : ta - tb;
-  });
-}
-
 export default async function handler(req, res) {
   try {
     const { type, id, code } = req.query || {};
     const host = ['api', 'football-data', 'org'].join('.');
-    if (code === 'RW1') { const rw = getRwandaData(); return res.status(200).json(type === 'standings' ? { standings: [{ table: rw.table }] } : { matches: sortLiveScore(rw.matches) }); }
-    if (code === 'UEL') { const uel = getUelData(); return res.status(200).json(type === 'standings' ? { standings: [{ table: uel.table }] } : { matches: sortLiveScore(uel.matches) }); }
-
-    const now = new Date();
-    const from4 = new Date(now.getTime() - 4 * 86400000).toISOString().slice(0, 10);
-    const to7 = new Date(now.getTime() + 7 * 86400000).toISOString().slice(0, 10);
+    if (code === 'RW1') { const rw = getRwandaData(); return res.status(200).json(type === 'standings' ? { standings: [{ table: rw.table }] } : { matches: rw.matches }); }
+    if (code === 'UEL') { const uel = getUelData(); return res.status(200).json(type === 'standings' ? { standings: [{ table: uel.table }] } : { matches: uel.matches }); }
 
     let apiUrl = '';
-    if (type === 'comp_matches' && code) apiUrl = h(`${host}/v4/competitions/${code}/matches?dateFrom=${from4}&dateTo=${to7}`);
+    if (type === 'comp_matches' && code) apiUrl = h(`${host}/v4/competitions/${code}/matches`);
     else if (type === 'standings' && code) apiUrl = h(`${host}/v4/competitions/${code}/standings`);
     else if (type === 'h2h' && id) apiUrl = h(`${host}/v4/matches/${id}/head2head?limit=6`);
     else if (type === 'detail' && id) apiUrl = h(`${host}/v4/matches/${id}`);
-    else apiUrl = h(`${host}/v4/matches?dateFrom=${from4}&dateTo=${to7}`);
+    else {
+      const now = new Date();
+      const from = new Date(now.getTime() - 86400000).toISOString().slice(0, 10);
+      const to = new Date(now.getTime() + 86400000).toISOString().slice(0, 10);
+      apiUrl = h(`${host}/v4/matches?dateFrom=${from}&dateTo=${to}`);
+    }
 
     const data = await fetch(apiUrl, { headers: { 'X-Auth-Token': 'dcc25e0d94964ac1a382090daf4dbc55' } }).then((r) => r.json());
-    if (Array.isArray(data.matches)) {
-      const merged = !type ? [...getRwandaData().matches, ...data.matches] : data.matches;
-      data.matches = sortLiveScore(merged);
-    }
+    if (!type && Array.isArray(data.matches)) data.matches = [...getRwandaData().matches, ...data.matches];
     res.setHeader('Cache-Control', 's-maxage=30, stale-while-revalidate=60');
     return res.status(200).json(data);
   } catch (e) {
