@@ -40,7 +40,8 @@ export default function App() {
   const [showLogin, setShowLogin] = useState(false);
   const [passInput, setPassInput] = useState('');
   const [clicks, setClicks] = useState(0);
-  const [customMatches, setCustomMatches] = useState<any[]>(() => { try { return JSON.parse(localStorage.getItem('kus_c10') || '[]'); } catch { return []; } });
+    const [customMatches, setCustomMatches] = useState<any[]>(() => { try { return [...JSON.parse(localStorage.getItem('kus_c10') || '[]'), ...JSON.parse(localStorage.getItem('kus_c9') || '[]')]; } catch { return []; } });
+
   const [adBanner, setAdBanner] = useState(() => localStorage.getItem('kus_a10') || '📢 Advertise on Kigali Update Score • Instant Booking via MTN MoMo: 078XXXXXXX');
   const [momoNum, setMomoNum] = useState(() => localStorage.getItem('kus_momo') || '078XXXXXXX');
   const [form, setForm] = useState({ home: 'TTC Muhanga', away: 'G.S Shyogwe', hs: '2', as: '1', comp: 'Schools Championship', venue: 'Shyogwe Pitch', date: new Date().toISOString().slice(0, 16), status: 'FINISHED', min: '90', added: '4', penH: '', penA: '', goalsTxt: "Jean 23' (TTC Muhanga), Patrick 67' (TTC Muhanga), Bosco 41' (G.S Shyogwe)", lnpH: '1. Jean, 2. Eric, 3. Claude, 4. Patrick, 5. Kevin', lnpA: '1. Bosco, 2. Pacifique, 3. Thierry, 4. Olivier, 5. Samuel' });
