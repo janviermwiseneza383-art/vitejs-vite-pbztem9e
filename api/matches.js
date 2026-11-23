@@ -32,44 +32,58 @@ function getRwandaData() {
   };
 }
 
+async function getUnlimitedEspnMatches() {
+  const leagues = ['eng.1', 'esp.1', 'ita.1', 'ger.1', 'fra.1', 'uefa.champions', 'uefa.europa', 'eng.2', 'bra.1', 'usa.1', 'por.1', 'ned.1', 'tur.1'];
+  try {
+    const res = await Promise.all(leagues.map((lg) => fetch(h(`://espn.com{lg}/scoreboard`)).then((r) => r.json()).catch(() => ({ events: [] }))));
+    return res.flatMap((d) => {
+      const lgName = d?.leagues?.at(0)?.name || 'Football';
+      return (Array.isArray(d?.events) ? d.events : []).map((ev) => {
+        const comp = ev.competitions?.at(0);
+        const home = comp?.competitors?.find((c) => c.homeAway === 'home');
+        const away = comp?.competitors?.find((c) => c.homeAway === 'away');
+        const st = ev.status?.type?.state;
+        return {
+          id: Number(ev.id) || Math.floor(Math.random() * 900000),
+          competition: { name: lgName, code: 'ESPN' },
+          status: st === 'in' ? 'IN_PLAY' : st === 'post' ? 'FINISHED' : 'TIMED',
+          minute: ev.status?.displayClock || 'LIVE',
+          utcDate: ev.date || new Date().toISOString(),
+          venue: comp?.venue?.fullName || 'Stadium',
+          homeTeam: { id: Number(home?.team?.id) || 1, name: home?.team?.displayName || 'Home', shortName: home?.team?.shortDisplayName || home?.team?.name || 'Home', crest: home?.team?.logo || '' },
+          awayTeam: { id: Number(away?.team?.id) || 2, name: away?.team?.displayName || 'Away', shortName: away?.team?.shortDisplayName || away?.team?.name || 'Away', crest: away?.team?.logo || '' },
+          score: { fullTime: { home: st === 'pre' ? null : Number(home?.score ?? 0), away: st === 'pre' ? null : Number(away?.score ?? 0) } },
+        };
+      });
+    });
+  } catch { return []; }
+}
+
 export default async function handler(req, res) {
   try {
     const { type, id, code } = req.query || {};
     const host = ['api', 'football-data', 'org'].join('.');
     const fdHdr = { 'X-Auth-Token': 'dcc25e0d94964ac1a382090daf4dbc55' };
-    const apHdr = { 'x-apisports-key': API_KEY };
-    const today = new Date().toISOString().slice(0, 10);
-    res.setHeader('Cache-Control', 's-maxage=120, stale-while-revalidate=300');
+    res.setHeader('Cache-Control', 's-maxage=45, stale-while-revalidate=120');
 
     if (code === 'RW1') { const rw = getRwandaData(); return res.status(200).json(type === 'standings' ? { standings: [{ table: rw.table }] } : { matches: rw.matches }); }
-    const spMap = { BASKET: 'v1.basketball.api-sports.io/games?date=' + today, VOLLEY: 'v1.volleyball.api-sports.io/games?date=' + today, RUGBY: 'v1.rugby.api-sports.io/games?date=' + today, HANDBALL: 'v1.handball.api-sports.io/games?date=' + today, HOCKEY: 'v1.hockey.api-sports.io/games?date=' + today, NFL: 'v1.american-football.api-sports.io/games?date=' + today, BASEBALL: 'v1.baseball.api-sports.io/games?date=' + today, MMA: 'v1.mma.api-sports.io/fights?date=' + today, F1: 'v1.formula-1.api-sports.io/races?season=2026' };
-    if (spMap[code]) {
-      if (type === 'standings') return res.status(200).json({ standings: [{ table: [] }] });
-      const d = await fetch(h(spMap[code]), { headers: apHdr }).then((r) => r.json()).catch(() => ({ response: [] }));
-      const arr = (Array.isArray(d?.response) ? d.response : []).slice(0, 35).map((g, i) => ({ id: g.id || i + 70000, competition: { name: g.league?.name || code, code }, status: ['FT', 'AOT', 'AP'].includes(g.status?.short) ? 'FINISHED' : (g.status?.short === 'NS' ? 'TIMED' : 'IN_PLAY'), minute: g.status?.timer || g.status?.short || 'LIVE', utcDate: g.date || new Date().toISOString(), venue: g.country?.name || 'Arena', homeTeam: { id: 1, name: g.teams?.home?.name || 'Home', shortName: g.teams?.home?.name || 'Home', crest: g.teams?.home?.logo || '' }, awayTeam: { id: 2, name: g.teams?.away?.name || 'Away', shortName: g.teams?.away?.name || 'Away', crest: g.teams?.away?.logo || '' }, score: { fullTime: { home: (typeof g.scores?.home === 'object' ? g.scores?.home?.total : g.scores?.home) ?? null, away: (typeof g.scores?.away === 'object' ? g.scores?.away?.total : g.scores?.away) ?? null } } }));
-      return res.status(200).json({ matches: sortLiveScore(arr) });
-    }
-
-    const from5 = new Date(Date.now() - 10 * 86400000).toISOString().slice(0, 10);
-    const to5 = new Date(Date.now() + 5 * 86400000).toISOString().slice(0, 10);
-    let apiUrl = h(`${host}/v4/matches?dateFrom=${from5}&dateTo=${to5}`);
-    if (type === 'comp_matches' && code) apiUrl = h(`${host}/v4/competitions/${code}/matches?dateFrom=${from5}&dateTo=${to5}`);
+    const from10 = new Date(Date.now() - 10 * 86400000).toISOString().slice(0, 10);
+    const to7 = new Date(Date.now() + 7 * 86400000).toISOString().slice(0, 10);
+    let apiUrl = h(`${host}/v4/matches?dateFrom=${from10}&dateTo=${to7}`);
+    if (type === 'comp_matches' && code) apiUrl = h(`${host}/v4/competitions/${code}/matches?dateFrom=${from10}&dateTo=${to7}`);
     else if (type === 'standings' && code) apiUrl = h(`${host}/v4/competitions/${code}/standings`);
     else if (type === 'h2h' && id) apiUrl = h(`${host}/v4/matches/${id}/head2head?limit=6`);
     else if (type === 'detail' && id) apiUrl = h(`${host}/v4/matches/${id}`);
 
-    const [fdRes, fbRes] = await Promise.all([
+    const [fdRes, espnMatches] = await Promise.all([
       fetch(apiUrl, { headers: fdHdr }).then((r) => r.json()).catch(() => ({})),
-      !type ? fetch(h('v3.football.api-sports.io/fixtures?live=all'), { headers: apHdr }).then((r) => r.json()).catch(() => ({ response: [] })) : Promise.resolve({ response: [] }),
+      !type ? getUnlimitedEspnMatches() : Promise.resolve([]),
     ]);
 
     if (!type) {
-      const fbLive = (Array.isArray(fbRes?.response) ? fbRes.response : []).map((f) => ({ id: f.fixture?.id, competition: { name: '⚽ ' + (f.league?.name || 'Live'), code: 'LIVE' }, status: 'IN_PLAY', minute: f.fixture?.status?.elapsed || 'LIVE', utcDate: f.fixture?.date || new Date().toISOString(), venue: f.fixture?.venue?.name || 'Stadium', homeTeam: { id: 1, name: f.teams?.home?.name, shortName: f.teams?.home?.name, crest: f.teams?.home?.logo || '' }, awayTeam: { id: 2, name: f.teams?.away?.name, shortName: f.teams?.away?.name, crest: f.teams?.away?.logo || '' }, score: { fullTime: { home: f.goals?.home ?? 0, away: f.goals?.away ?? 0 } } }));
       const baseMatches = Array.isArray(fdRes?.matches) ? fdRes.matches : [];
-      return res.status(200).json({ matches: sortLiveScore([...fbLive, ...getRwandaData().matches, ...baseMatches]) });
+      return res.status(200).json({ matches: sortLiveScore([...espnMatches, ...getRwandaData().matches, ...baseMatches]) });
     }
     return res.status(200).json(fdRes);
   } catch (e) { return res.status(200).json({ matches: getRwandaData().matches }); }
 }
-
-
