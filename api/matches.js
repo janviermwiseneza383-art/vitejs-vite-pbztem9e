@@ -64,11 +64,12 @@ export default async function handler(req, res) {
     ]);
 
     if (!type) {
-      const fbLive = (Array.isArray(fbRes?.response) ? fbRes.response : []).slice(0, 30).map((f) => ({ id: f.fixture?.id, competition: { name: '⚽ ' + (f.league?.name || 'Live'), code: 'LIVE' }, status: 'IN_PLAY', minute: f.fixture?.status?.elapsed || 'LIVE', utcDate: f.fixture?.date || new Date().toISOString(), venue: f.fixture?.venue?.name || 'Stadium', homeTeam: { id: 1, name: f.teams?.home?.name, shortName: f.teams?.home?.name, crest: f.teams?.home?.logo || '' }, awayTeam: { id: 2, name: f.teams?.away?.name, shortName: f.teams?.away?.name, crest: f.teams?.away?.logo || '' }, score: { fullTime: { home: f.goals?.home ?? 0, away: f.goals?.away ?? 0 } } }));
+      const fbLive = (Array.isArray(fbRes?.response) ? fbRes.response : []).map((f) => ({ id: f.fixture?.id, competition: { name: '⚽ ' + (f.league?.name || 'Live'), code: 'LIVE' }, status: 'IN_PLAY', minute: f.fixture?.status?.elapsed || 'LIVE', utcDate: f.fixture?.date || new Date().toISOString(), venue: f.fixture?.venue?.name || 'Stadium', homeTeam: { id: 1, name: f.teams?.home?.name, shortName: f.teams?.home?.name, crest: f.teams?.home?.logo || '' }, awayTeam: { id: 2, name: f.teams?.away?.name, shortName: f.teams?.away?.name, crest: f.teams?.away?.logo || '' }, score: { fullTime: { home: f.goals?.home ?? 0, away: f.goals?.away ?? 0 } } }));
       const baseMatches = Array.isArray(fdRes?.matches) ? fdRes.matches : [];
       return res.status(200).json({ matches: sortLiveScore([...fbLive, ...getRwandaData().matches, ...baseMatches]) });
     }
     return res.status(200).json(fdRes);
   } catch (e) { return res.status(200).json({ matches: getRwandaData().matches }); }
 }
+
 
