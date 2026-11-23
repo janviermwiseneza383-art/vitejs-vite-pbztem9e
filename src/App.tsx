@@ -52,7 +52,8 @@ export default function App() {
   const [showLogin, setShowLogin] = useState(false);
   const [passInput, setPassInput] = useState('');
   const [clicks, setClicks] = useState(0);
-    const [customMatches, setCustomMatches] = useState<any[]>(() => { try { return [...JSON.parse(localStorage.getItem('kus_c10') || '[]'), ...JSON.parse(localStorage.getItem('kus_c9') || '[]')]; } catch { return []; } });
+      const [customMatches, setCustomMatches] = useState<any[]>(() => { const def = [{ id: 88801, competition: { name: 'Schools Championship', code: 'SCHOOL' }, status: 'FINISHED', utcDate: '2026-11-22T13:00:00Z', venue: 'Shyogwe Pitch', goalsTxt: "Jean 23' (TTC Muhanga), Patrick 67' (TTC Muhanga), Bosco 41' (G.S Shyogwe)", lnpH: '1. Bosco, 2. Pacifique, 3. Thierry, 4. Olivier, 5. Samuel', lnpA: '1. Jean, 2. Eric, 3. Claude, 4. Patrick, 5. Kevin', homeTeam: { id: 881, name: 'G.S Shyogwe', shortName: 'G.S Shyogwe' }, awayTeam: { id: 882, name: 'TTC Muhanga', shortName: 'TTC Muhanga' }, score: { fullTime: { home: 1, away: 2 } } }]; try { const saved = JSON.parse(localStorage.getItem('kus_c10') || '[]'); return saved.length > 0 ? saved : def; } catch { return def; } });
+
 
   const [adBanner, setAdBanner] = useState(() => localStorage.getItem('kus_a10') || '📢 Advertise on Kigali Update Score • Instant Booking via MTN MoMo: 078XXXXXXX');
   const [momoNum, setMomoNum] = useState(() => localStorage.getItem('kus_momo') || '078XXXXXXX');
