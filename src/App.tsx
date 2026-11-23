@@ -20,6 +20,18 @@ const POPULAR = [
   { code: 'ELC', name: 'EFL Championship', bg: '#1d4ed8', fg: '#fff', tag: 'ELC', img: h('crests.football-data.org/ELC.png') },
   { code: 'BSA', name: 'Brasileirão Série A', bg: '#009c3b', fg: '#ffdf00', tag: 'BR', img: h('crests.football-data.org/bsa.png') },
 ];
+const ALL_SPORTS = [
+  { code: 'BASKET', name: 'Basketball / NBA', tag: '🏀', bg: '#ea580c' },
+  { code: 'VOLLEY', name: 'Volleyball', tag: '🏐', bg: '#0284c7' },
+  { code: 'RUGBY', name: 'Rugby', tag: '🏉', bg: '#15803d' },
+  { code: 'HANDBALL', name: 'Handball', tag: '🤾', bg: '#7c3aed' },
+  { code: 'HOCKEY', name: 'Ice Hockey', tag: '🏒', bg: '#0f766e' },
+  { code: 'NFL', name: 'NFL Football', tag: '🏈', bg: '#991b1b' },
+  { code: 'BASEBALL', name: 'Baseball', tag: '⚾', bg: '#1d4ed8' },
+  { code: 'MMA', name: 'UFC / MMA', tag: '🥊', bg: '#b91c1c' },
+  { code: 'F1', name: 'Formula 1', tag: '🏎️', bg: '#dc2626' },
+];
+
 
 const CompLogo = ({ p }: { p: any }) => {
   const [err, setErr] = useState(false);
@@ -172,7 +184,8 @@ export default function App() {
         </main>
       ) : (
         <main className="grid-3">
-          <aside><div className="box"><div className="sec-lbl">LIVE</div>{[{ id: 'ALL', l: t.all }, { id: 'LV', l: `🔴 ${t.lv}` }, { id: 'UP', l: t.up }, { id: 'FN', l: t.fn }, { id: 'FAV', l: `★ ${t.fav} (${favs.length})` }].map(b => <button key={b.id} className={`nav-item ${st === b.id ? 'act' : ''}`} onClick={() => setSt(b.id)}>{b.l}</button>)}</div><div className="box"><div className="sec-lbl">FOOTBALL LEAGUES</div>{POPULAR.map(p => <button key={p.code} className={`nav-item ${lg === p.code ? 'act' : ''}`} onClick={() => { setLg(p.code); setSideLg(p.code === 'SCHOOL' ? 'RW1' : p.code); }}><CompLogo p={p} /><span>{p.name}</span></button>)}</div></aside>
+                    <aside><div className="box"><div className="sec-lbl">LIVE</div>{[{ id: 'ALL', l: t.all }, { id: 'LV', l: `🔴 ${t.lv}` }, { id: 'UP', l: t.up }, { id: 'FN', l: t.fn }, { id: 'FAV', l: `★ ${t.fav} (${favs.length})` }].map(b => <button key={b.id} className={`nav-item ${st === b.id ? 'act' : ''}`} onClick={() => setSt(b.id)}>{b.l}</button>)}</div><div className="box"><div className="sec-lbl">FOOTBALL LEAGUES</div>{POPULAR.map(p => <button key={p.code} className={`nav-item ${lg === p.code ? 'act' : ''}`} onClick={() => { setLg(p.code); setSideLg(p.code === 'SCHOOL' ? 'RW1' : p.code); }}><CompLogo p={p} /><span>{p.name}</span></button>)}</div><div className="box"><div className="sec-lbl">ALL SPORTS (LIVE)</div>{ALL_SPORTS.map(sp => <button key={sp.code} className={`nav-item ${lg === sp.code ? 'act' : ''}`} onClick={() => setLg(sp.code)}><CompLogo p={sp} /><span>{sp.name}</span></button>)}</div></aside>
+
           <section><div className="ad-box">{adBanner}</div><div className="sec-lbl" style={{ paddingLeft: 4 }}>MATCHES ({list.length})</div>{list.map(m => { const live = ['IN_PLAY', 'PAUSED'].includes(m.status), hasPen = m.score?.duration === 'PENALTY_SHOOTOUT' || (m.score?.penalties && m.score.penalties.home !== null); return (<div key={m.id} className={`m-card ${live ? 'live' : ''}`} onClick={() => openMatch(m)}><div className="m-top"><span style={{ fontWeight: 700, color: '#d4d4d4' }}>{m.competition?.name}</span><span>{new Date(m.utcDate).toLocaleDateString([], { weekday: 'short', day: 'numeric', month: 'short' })} • {new Date(m.utcDate).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</span></div><div className="m-row"><span className={live ? 'tm-live' : ''} style={{ fontSize: 12, color: live ? '#ff6b00' : '#9ca3af' }}>{formatStatus(m)}</span><div className="tm h"><span>{m.homeTeam.shortName || m.homeTeam.name}</span><Crest tm={m.homeTeam} /></div><div className={`sc ${live ? 'live' : ''}`}><div>{m.score.fullTime.home ?? '-'} - {m.score.fullTime.away ?? '-'}</div>{hasPen && <div style={{ fontSize: 10, color: '#facc15' }}>Pen: {m.score.penalties.home} - {m.score.penalties.away}</div>}</div><div className="tm"><Crest tm={m.awayTeam} /><span>{m.awayTeam.shortName || m.awayTeam.name}</span></div><button className={`star ${favs.includes(m.id) ? 'fav' : ''}`} onClick={e => toggleFav(e, m.id)}>{favs.includes(m.id) ? '★' : '☆'}</button></div></div>); })}</section>
           <aside><div className="box"><input className="search" value={q} onChange={e => setQ(e.target.value)} placeholder={`🔍 ${t.s}`} /><select value={sideLg} onChange={e => setSideLg(e.target.value)} style={{ width: '100%', background: '#1f1f1f', color: '#fff', border: '1px solid #333', padding: '7px 10px', borderRadius: 8, marginBottom: 10, fontSize: 12 }}>{POPULAR.filter(p => p.code !== 'SCHOOL').map(p => <option key={p.code} value={p.code}>{p.name}</option>)}</select><table><thead><tr><th>#</th><th style={{ textAlign: 'left' }}>Team</th><th>P</th><th>GD</th><th>PTS</th></tr></thead><tbody>{sideTbl.map((r: any) => <tr key={r.position}><td>{r.position}</td><td style={{ textAlign: 'left', fontWeight: 600 }}>{r.team?.shortName || r.team?.name}</td><td>{r.playedGames}</td><td>{r.goalDifference}</td><td style={{ fontWeight: 800, color: '#ff6b00' }}>{r.points}</td></tr>)}</tbody></table></div></aside>
         </main>
