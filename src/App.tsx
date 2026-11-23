@@ -27,6 +27,7 @@ const RW_BADGES: Record<string, [string, string, string]> = {
   'Marines': ['#dc2626', '#fff', 'MAR'], 'Kiyovu Sports': ['#15803d', '#fff', 'KSC'], 'Al-Hilal': ['#0284c7', '#fff', 'HIL'],
   'Gicumbi': ['#16a34a', '#facc15', 'GIC'], 'Bugesera': ['#eab308', '#111', 'BUG'], 'Gasogi United': ['#b91c1c', '#facc15', 'GAS'],
   'Amagaju': ['#15803d', '#fff', 'AMA'], 'Musanze': ['#1e40af', '#fff', 'MUS'], "Etoile de l'Est": ['#dc2626', '#fff', 'ETO'],
+  'Mukura': ['#eab308', '#111', 'MUK'], 'Gorilla': ['#15803d', '#fff', 'GOR'], 'Al-Merrikh': ['#dc2626', '#facc15', 'MER'],
 };
 
 const CompLogo = ({ p }: { p: any }) => {
@@ -42,19 +43,18 @@ const Crest = ({ tm }: { tm: any }) => {
   const [bg, fg, txt] = RW_BADGES[name] || ['#0f766e', '#ffffff', name.slice(0, 3).toUpperCase()];
   return <span style={{ display: 'inline-flex', alignItems: 'center', justifyContent: 'center', width: 23, height: 23, borderRadius: '4px 4px 11px 11px', background: bg, color: fg, fontSize: 8, fontWeight: 900, border: '1px solid rgba(255,255,255,0.35)', flexShrink: 0 }}>{txt}</span>;
 };
-
 export default function App() {
   const [lang, setLang] = useState<Lang>('ENG');
   const [isAdmin, setIsAdmin] = useState(false);
   const [showLogin, setShowLogin] = useState(false);
   const [passInput, setPassInput] = useState('');
   const [clicks, setClicks] = useState(0);
-  const [customMatches, setCustomMatches] = useState<any[]>(() => { try { return JSON.parse(localStorage.getItem('kus_custom3') || '[]'); } catch { return []; } });
-  const [adBanner, setAdBanner] = useState(() => localStorage.getItem('kus_ad3') || '📢 Advertise on Kigali Update Score • Instant Booking via MTN MoMo: 078XXXXXXX');
+  const [customMatches, setCustomMatches] = useState<any[]>(() => { try { return JSON.parse(localStorage.getItem('kus_custom4') || '[]'); } catch { return []; } });
+  const [adBanner, setAdBanner] = useState(() => localStorage.getItem('kus_ad4') || '📢 Advertise on Kigali Update Score • Instant Booking via MTN MoMo: 078XXXXXXX');
   const [momoNum, setMomoNum] = useState(() => localStorage.getItem('kus_momo') || '078XXXXXXX');
   const [form, setForm] = useState({ home: 'TTC Muhanga', away: 'TTC Kigali', hs: '2', as: '1', comp: 'TTC Schools Championship', venue: 'Muhanga Pitch', date: new Date().toISOString().slice(0, 16), status: 'TIMED', min: '90', added: '4', penH: '', penA: '' });
-  const [matches, setMatches] = useState<any[]>(() => { try { return JSON.parse(localStorage.getItem('kus_v25') || '[]'); } catch { return []; } });
-  const [favs, setFavs] = useState<number[]>(() => { try { return JSON.parse(localStorage.getItem('kus_f25') || '[]'); } catch { return []; } });
+  const [matches, setMatches] = useState<any[]>(() => { try { return JSON.parse(localStorage.getItem('kus_v26') || '[]'); } catch { return []; } });
+  const [favs, setFavs] = useState<number[]>(() => { try { return JSON.parse(localStorage.getItem('kus_f26') || '[]'); } catch { return []; } });
   const [lg, setLg] = useState('ALL');
   const [st, setSt] = useState('ALL');
   const [q, setQ] = useState('');
@@ -65,10 +65,12 @@ export default function App() {
   const [det, setDet] = useState<any>(null);
   const [mTbl, setMTbl] = useState<any[]>([]);
   const [h2h, setH2h] = useState<any[]>([]);
-  const t = TXT[lang];  const load = (c = lg) => {
+  const t = TXT[lang];
+
+  const load = (c = lg) => {
     if (c === 'SCHOOL') { setMatches(customMatches); return; }
     fetch(c === 'ALL' ? '/api/matches' : `/api/matches?type=comp_matches&code=${c}`).then(r => r.json()).then(d => {
-      if (Array.isArray(d.matches)) { setMatches(d.matches); if (c === 'ALL') localStorage.setItem('kus_v25', JSON.stringify(d.matches)); }
+      if (Array.isArray(d.matches)) { setMatches(d.matches); if (c === 'ALL') localStorage.setItem('kus_v26', JSON.stringify(d.matches)); }
     }).catch(() => {});
   };
 
@@ -106,12 +108,12 @@ export default function App() {
     };
     const next = [item, ...customMatches];
     setCustomMatches(next);
-    localStorage.setItem('kus_custom3', JSON.stringify(next));
-    alert('✅ Match saved with date, time, added time & penalties!');
+    localStorage.setItem('kus_custom4', JSON.stringify(next));
+    alert('✅ Match saved!');
   };
 
-  const delCustomMatch = (id: number) => { const next = customMatches.filter(x => x.id !== id); setCustomMatches(next); localStorage.setItem('kus_custom3', JSON.stringify(next)); };
-  const toggleFav = (e: any, id: number) => { e.stopPropagation(); const nx = favs.includes(id) ? favs.filter(x => x !== id) : [...favs, id]; setFavs(nx); localStorage.setItem('kus_f25', JSON.stringify(nx)); };
+  const delCustomMatch = (id: number) => { const next = customMatches.filter(x => x.id !== id); setCustomMatches(next); localStorage.setItem('kus_custom4', JSON.stringify(next)); };
+  const toggleFav = (e: any, id: number) => { e.stopPropagation(); const nx = favs.includes(id) ? favs.filter(x => x !== id) : [...favs, id]; setFavs(nx); localStorage.setItem('kus_f26', JSON.stringify(nx)); };
 
   const openMatch = async (m: any) => {
     setSel(m); setMTab('INFO'); setDet(null); setMTbl([]); setH2h([]);
@@ -123,7 +125,7 @@ export default function App() {
     ]);
     setDet(d1); setMTbl((Array.isArray(d2?.standings) ? d2.standings.at(0)?.table : []) || []); setH2h(d3?.matches || []);
   };
-  const allShown = lg === 'ALL' ? [...customMatches, ...matches] : matches;
+    const allShown = lg === 'ALL' ? [...customMatches, ...matches] : matches;
   const list = allShown.filter(m => {
     if (st === 'FAV' && !favs.includes(m.id)) return false;
     const s = q.trim().toLowerCase();
@@ -184,7 +186,7 @@ export default function App() {
                 <input className="inp" type="number" value={form.penH} onChange={e => setForm({ ...form, penH: e.target.value })} placeholder="Home Pen (optional)" />
                 <input className="inp" type="number" value={form.penA} onChange={e => setForm({ ...form, penA: e.target.value })} placeholder="Away Pen (optional)" />
               </div>
-              <button type="submit" className="btn-pri">💾 Save Match to Website</button>
+              <button type="submit" className="btn-pri">💾 Save Match</button>
             </form>
           </div>
           <div className="box">
@@ -193,8 +195,8 @@ export default function App() {
           </div>
           <div className="box">
             <div className="sec-lbl">💰 MOMO SPONSORSHIP & ADS BANNER</div>
-            <input className="inp" value={momoNum} onChange={e => { setMomoNum(e.target.value); localStorage.setItem('kus_momo', e.target.value); const txt = `📢 Advertise on Kigali Update Score • Pay via MTN MoMo: ${e.target.value}`; setAdBanner(txt); localStorage.setItem('kus_ad3', txt); }} placeholder="Your MTN MoMo Number" />
-            <input className="inp" value={adBanner} onChange={e => { setAdBanner(e.target.value); localStorage.setItem('kus_ad3', e.target.value); }} placeholder="Banner Text" />
+            <input className="inp" value={momoNum} onChange={e => { setMomoNum(e.target.value); localStorage.setItem('kus_momo', e.target.value); const txt = `📢 Advertise on Kigali Update Score • Pay via MTN MoMo: ${e.target.value}`; setAdBanner(txt); localStorage.setItem('kus_ad4', txt); }} placeholder="Your MTN MoMo Number" />
+            <input className="inp" value={adBanner} onChange={e => { setAdBanner(e.target.value); localStorage.setItem('kus_ad4', e.target.value); }} placeholder="Banner Text" />
           </div>
         </main>
       ) : (
@@ -205,63 +207,26 @@ export default function App() {
           </aside>
           <section>
             <div className="ad-box">{adBanner}</div>
-            <div className="sec-lbl" style={{ paddingLeft: 4 }}>
-              AMAKURU Y'IMIKINO
-            </div>
-            <div className="filter-bar">
-              <input 
-                className="inp search-inp" 
-                value={q} 
-                onChange={e => setQ(e.target.value)} 
-                placeholder={t.s} 
-              />
-            </div>
-            <div className="matches-list">
-              {list.length === 0 ? (
-                <div className="box" style={{ textAlign: 'center', padding: '30px 10px', color: '#666' }}>
-                  Nta mikino ibonetse.
+            <div className="sec-lbl" style={{ paddingLeft: 4 }}>MATCHES ({list.length})</div>
+            {list.map(m => {
+              const live = ['IN_PLAY', 'PAUSED'].includes(m.status);
+              const hasPen = m.score?.duration === 'PENALTY_SHOOTOUT' || (m.score?.penalties && m.score.penalties.home !== null);
+              return (<div key={m.id} className={`m-card ${live ? 'live' : ''}`} onClick={() => openMatch(m)}>
+                <div className="m-top"><span style={{ fontWeight: 700, color: '#d4d4d4' }}>{m.competition?.name}</span><span>{new Date(m.utcDate).toLocaleDateString([], { weekday: 'short', day: 'numeric', month: 'short' })} • {new Date(m.utcDate).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</span></div>
+                <div className="m-row">
+                  <span className={live ? 'tm-live' : ''} style={{ fontSize: 12, color: live ? '#ff6b00' : '#9ca3af' }}>{formatStatus(m)}</span>
+                  <div className="tm h"><span>{m.homeTeam.shortName || m.homeTeam.name}</span><Crest tm={m.homeTeam} /></div>
+                  <div className={`sc ${live ? 'live' : ''}`}><div>{m.score.fullTime.home ?? '-'} - {m.score.fullTime.away ?? '-'}</div>{hasPen && <div style={{ fontSize: 10, color: '#facc15' }}>Pen: {m.score.penalties.home} - {m.score.penalties.away}</div>}</div>
+                  <div className="tm"><Crest tm={m.awayTeam} /><span>{m.awayTeam.shortName || m.awayTeam.name}</span></div>
+                  <button className={`star ${favs.includes(m.id) ? 'fav' : ''}`} onClick={e => toggleFav(e, m.id)}>{favs.includes(m.id) ? '★' : '☆'}</button>
                 </div>
-              ) : (
-                list.map(m => {
-                  const isFav = favs.includes(m.id);
-                  const hasPen = m.score?.duration === 'PENALTY_SHOOTOUT' || (m.score?.penalties && m.score.penalties.home !== null);
-                  return (
-                    <div key={m.id} className="match-card" onClick={() => openMatch(m)}>
-                      <div className="match-top">
-                        <span className="comp-name">{m.competition?.name || 'Match'}</span>
-                        <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-                          <span className={`status-badge ${['IN_PLAY', 'PAUSED'].includes(m.status) ? 'live' : ''}`}>
-                            {formatStatus(m)}
-                          </span>
-                          <button 
-                            className={`fav-btn ${isFav ? 'active' : ''}`} 
-                            onClick={(e) => toggleFav(e, m.id)}
-                            title="Kuri urutonde rw'abakunzwe"
-                          >
-                            {isFav ? '★' : '☆'}
-                          </button>
-                        </div>
-                      </div>
-                      <div className="match-body">
-                        <div className="team home">
-                          <Crest tm={m.homeTeam} />
-                          <span className="team-name">{m.homeTeam?.shortName || m.homeTeam?.name}</span>
-                        </div>
-                        <div className="score-box">
-                          <span className="score">
-                            {m.score?.fullTime?.home ?? '-'} : {m.score?.fullTime?.away ?? '-'}
-                          </span>
-                          {hasPen && m.score?.penalties && (
-                            <span className="pen-score">
-                              (Pen: {m.score.penalties.home} - {m.score.penalties.away})
-                            </span>
-                          )}
-                        </div>
-                        <div className="team away">
-                          <span className="team-name">{m.awayTeam?.shortName || m.awayTeam?.name}</span>
-                          <Crest tm={m.awayTeam} />
-                        </div>
-                      </div>
-                      <div className="match-footer">
-                        <span>📍 {m.venue || 'Amahoro Stadium'}</span>
+              </div>);
+            })}
+          </section>
+          <aside><div className="box"><input className="search" value={q} onChange={e => setQ(e.target.value)} placeholder={`🔍 ${t.s}`} /><select value={sideLg} onChange={e => setSideLg(e.target.value)} style={{ width: '100%', background: '#1f1f1f', color: '#fff', border: '1px solid #333', padding: '7px 10px', borderRadius: 8, marginBottom: 10, fontSize: 12 }}>{POPULAR.filter(p => p.code !== 'SCHOOL').map(p => <option key={p.code} value={p.code}>{p.name}</option>)}</select><table><thead><tr><th>#</th><th style={{ textAlign: 'left' }}>Team</th><th>P</th><th>GD</th><th>PTS</th></tr></thead><tbody>{sideTbl.map((r: any) => <tr key={r.position}><td>{r.position}</td><td style={{ textAlign: 'left', fontWeight: 600 }}>{r.team?.shortName || r.team?.name}</td><td>{r.playedGames}</td><td>{r.goalDifference}</td><td style={{ fontWeight: 800, color: '#ff6b00' }}>{r.points}</td></tr>)}</tbody></table></div></aside>
+        </main>
+      )}
+      {sel && (<div className="modal-bg" onClick={() => setSel(null)}><div className="modal" onClick={e => e.stopPropagation()}>
+        <div className="m-top"><strong>{sel.competition?.name}</strong><button onClick={() => setSel(null)} style={{ background: 'none', border: 'none', color: '#fff', fontSize: 18, cursor: 'pointer' }}>✕</button></div>
+
 
