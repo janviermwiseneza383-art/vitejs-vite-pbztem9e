@@ -49,12 +49,12 @@ export default function App() {
   const [showLogin, setShowLogin] = useState(false);
   const [passInput, setPassInput] = useState('');
   const [clicks, setClicks] = useState(0);
-  const [customMatches, setCustomMatches] = useState<any[]>(() => { try { return JSON.parse(localStorage.getItem('kus_custom4') || '[]'); } catch { return []; } });
-  const [adBanner, setAdBanner] = useState(() => localStorage.getItem('kus_ad4') || '📢 Advertise on Kigali Update Score • Instant Booking via MTN MoMo: 078XXXXXXX');
+  const [customMatches, setCustomMatches] = useState<any[]>(() => { try { return JSON.parse(localStorage.getItem('kus_custom5') || '[]'); } catch { return []; } });
+  const [adBanner, setAdBanner] = useState(() => localStorage.getItem('kus_ad5') || '📢 Advertise on Kigali Update Score • Instant Booking via MTN MoMo: 078XXXXXXX');
   const [momoNum, setMomoNum] = useState(() => localStorage.getItem('kus_momo') || '078XXXXXXX');
   const [form, setForm] = useState({ home: 'TTC Muhanga', away: 'TTC Kigali', hs: '2', as: '1', comp: 'TTC Schools Championship', venue: 'Muhanga Pitch', date: new Date().toISOString().slice(0, 16), status: 'TIMED', min: '90', added: '4', penH: '', penA: '' });
-  const [matches, setMatches] = useState<any[]>(() => { try { return JSON.parse(localStorage.getItem('kus_v26') || '[]'); } catch { return []; } });
-  const [favs, setFavs] = useState<number[]>(() => { try { return JSON.parse(localStorage.getItem('kus_f26') || '[]'); } catch { return []; } });
+  const [matches, setMatches] = useState<any[]>(() => { try { return JSON.parse(localStorage.getItem('kus_v28') || '[]'); } catch { return []; } });
+  const [favs, setFavs] = useState<number[]>(() => { try { return JSON.parse(localStorage.getItem('kus_f28') || '[]'); } catch { return []; } });
   const [lg, setLg] = useState('ALL');
   const [st, setSt] = useState('ALL');
   const [q, setQ] = useState('');
@@ -70,7 +70,7 @@ export default function App() {
   const load = (c = lg) => {
     if (c === 'SCHOOL') { setMatches(customMatches); return; }
     fetch(c === 'ALL' ? '/api/matches' : `/api/matches?type=comp_matches&code=${c}`).then(r => r.json()).then(d => {
-      if (Array.isArray(d.matches)) { setMatches(d.matches); if (c === 'ALL') localStorage.setItem('kus_v26', JSON.stringify(d.matches)); }
+      if (Array.isArray(d.matches)) { setMatches(d.matches); if (c === 'ALL') localStorage.setItem('kus_v28', JSON.stringify(d.matches)); }
     }).catch(() => {});
   };
 
@@ -108,12 +108,12 @@ export default function App() {
     };
     const next = [item, ...customMatches];
     setCustomMatches(next);
-    localStorage.setItem('kus_custom4', JSON.stringify(next));
+    localStorage.setItem('kus_custom5', JSON.stringify(next));
     alert('✅ Match saved!');
   };
 
-  const delCustomMatch = (id: number) => { const next = customMatches.filter(x => x.id !== id); setCustomMatches(next); localStorage.setItem('kus_custom4', JSON.stringify(next)); };
-  const toggleFav = (e: any, id: number) => { e.stopPropagation(); const nx = favs.includes(id) ? favs.filter(x => x !== id) : [...favs, id]; setFavs(nx); localStorage.setItem('kus_f26', JSON.stringify(nx)); };
+  const delCustomMatch = (id: number) => { const next = customMatches.filter(x => x.id !== id); setCustomMatches(next); localStorage.setItem('kus_custom5', JSON.stringify(next)); };
+  const toggleFav = (e: any, id: number) => { e.stopPropagation(); const nx = favs.includes(id) ? favs.filter(x => x !== id) : [...favs, id]; setFavs(nx); localStorage.setItem('kus_f28', JSON.stringify(nx)); };
 
   const openMatch = async (m: any) => {
     setSel(m); setMTab('INFO'); setDet(null); setMTbl([]); setH2h([]);
@@ -195,8 +195,8 @@ export default function App() {
           </div>
           <div className="box">
             <div className="sec-lbl">💰 MOMO SPONSORSHIP & ADS BANNER</div>
-            <input className="inp" value={momoNum} onChange={e => { setMomoNum(e.target.value); localStorage.setItem('kus_momo', e.target.value); const txt = `📢 Advertise on Kigali Update Score • Pay via MTN MoMo: ${e.target.value}`; setAdBanner(txt); localStorage.setItem('kus_ad4', txt); }} placeholder="Your MTN MoMo Number" />
-            <input className="inp" value={adBanner} onChange={e => { setAdBanner(e.target.value); localStorage.setItem('kus_ad4', e.target.value); }} placeholder="Banner Text" />
+            <input className="inp" value={momoNum} onChange={e => { setMomoNum(e.target.value); localStorage.setItem('kus_momo', e.target.value); const txt = `📢 Advertise on Kigali Update Score • Pay via MTN MoMo: ${e.target.value}`; setAdBanner(txt); localStorage.setItem('kus_ad5', txt); }} placeholder="Your MTN MoMo Number" />
+            <input className="inp" value={adBanner} onChange={e => { setAdBanner(e.target.value); localStorage.setItem('kus_ad5', e.target.value); }} placeholder="Banner Text" />
           </div>
         </main>
       ) : (
