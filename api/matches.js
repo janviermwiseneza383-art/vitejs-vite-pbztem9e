@@ -13,7 +13,7 @@ function sortLiveScore(list) {
   });
 }
 
-function getFallbackRwandaTable() {
+function getRwanda2026Table() {
   return [
     { position: 1, team: { id: 912, name: 'Gicumbi FC', shortName: 'Gicumbi' }, playedGames: 8, goalDifference: 3, points: 16 },
     { position: 2, team: { id: 910, name: 'Marines FC', shortName: 'Marines' }, playedGames: 9, goalDifference: 7, points: 15 },
@@ -27,21 +27,21 @@ function getFallbackRwandaTable() {
     { position: 10, team: { id: 901, name: 'APR FC', shortName: 'APR FC' }, playedGames: 7, goalDifference: 2, points: 10 },
     { position: 11, team: { id: 903, name: 'Police FC', shortName: 'Police' }, playedGames: 8, goalDifference: 0, points: 9 },
     { position: 12, team: { id: 907, name: 'Gasogi United', shortName: 'Gasogi United' }, playedGames: 8, goalDifference: -2, points: 9 },
+    { position: 13, team: { id: 914, name: 'Amagaju FC', shortName: 'Amagaju' }, playedGames: 8, goalDifference: -2, points: 9 },
+    { position: 14, team: { id: 915, name: 'Musanze FC', shortName: 'Musanze' }, playedGames: 8, goalDifference: -3, points: 8 },
+    { position: 15, team: { id: 919, name: 'AS Kigali', shortName: 'AS Kigali' }, playedGames: 8, goalDifference: -4, points: 7 },
+    { position: 16, team: { id: 916, name: "Etoile de l'Est", shortName: "Etoile de l'Est" }, playedGames: 8, goalDifference: -6, points: 5 },
   ];
 }
 
 async function getRwandaFootball() {
   const hdrs = { 'x-apisports-key': API_KEY };
   const base = h('v3.football.api-sports.io');
-  const seasons = [2024, 2025, 2026];
-  for (const season of seasons) {
+  for (const season of ['2026', '2025', '2024']) {
     try {
-      const [fixRes, tblRes] = await Promise.all([
-        fetch(`${base}/fixtures?league=405&season=${season}`, { headers: hdrs }).then((r) => r.json()).catch(() => ({})),
-        fetch(`${base}/standings?league=405&season=${season}`, { headers: hdrs }).then((r) => r.json()).catch(() => ({})),
-      ]);
+      const fixRes = await fetch(`${base}/fixtures?league=405&season=${season}`, { headers: hdrs }).then((r) => r.json()).catch(() => ({}));
       if (Array.isArray(fixRes?.response) && fixRes.response.length > 0) {
-        const matches = fixRes.response.map((f) => {
+        const matches = fixRes.response.slice(0, 20).map((f) => {
           const st = f.fixture?.status?.short || 'NS';
           const live = ['1H', 'HT', '2H', 'ET', 'BT', 'P', 'LIVE'].includes(st);
           const fin = ['FT', 'AET', 'PEN'].includes(st);
@@ -53,13 +53,11 @@ async function getRwandaFootball() {
             score: { duration: st === 'PEN' ? 'PENALTY_SHOOTOUT' : 'REGULAR', fullTime: { home: f.goals?.home, away: f.goals?.away }, penalties: st === 'PEN' ? { home: f.score?.penalty?.home, away: f.score?.penalty?.away } : null },
           };
         });
-        const rawTbl = tblRes?.response?.at(0)?.league?.standings?.at(0) || [];
-        const table = rawTbl.length > 0 ? rawTbl.map((r) => ({ position: r.rank, team: { id: r.team?.id, name: r.team?.name, shortName: r.team?.name, crest: r.team?.logo || '' }, playedGames: r.all?.played || 0, goalDifference: r.goalsDiff || 0, points: r.points || 0 })) : getFallbackRwandaTable();
-        return { matches: sortLiveScore(matches), table };
+        return { matches: sortLiveScore(matches), table: getRwanda2026Table() };
       }
     } catch {}
   }
-  return { matches: [], table: getFallbackRwandaTable() };
+  return { matches: [], table: getRwanda2026Table() };
 }
 
 async function getOtherSport(sportCode) {
@@ -114,7 +112,7 @@ export default async function handler(req, res) {
     else apiUrl = h(`${host}/v4/matches?dateFrom=${from4}&dateTo=${to7}`);
     const data = await fetch(apiUrl, { headers: { 'X-Auth-Token': 'dcc25e0d94964ac1a382090daf4dbc55' } }).then((r) => r.json());
     if (Array.isArray(data.matches)) {
-      const merged = !type ? [...(await getRwandaFootball()).matches.slice(0, 12), ...data.matches] : data.matches;
+      const merged = !type ? [...(await getRwandaFootball()).matches.slice(0, 10), ...data.matches] : data.matches;
       data.matches = sortLiveScore(merged);
     }
     res.setHeader('Cache-Control', 's-maxage=60, stale-while-revalidate=120');
